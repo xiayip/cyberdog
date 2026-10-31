@@ -62,29 +62,41 @@
       "code": "paused / startup",
       "scene": "开机自检完成",
       "emo": "打招呼＋精神",
-      "design": "一声短促的奶狗发声，作为开机招呼；不使用此前口哨感片段。",
+      "design": "03号一声清脆的汪，作为开机招呼；来自另一只狗的CC0公开MP3试听源，不变调。",
       "mode": "sound",
       "selected_variant": 0,
       "file": "定稿音频/A1_开机招呼.wav",
       "filename": "A1_开机招呼.wav",
-      "duration": 0.37,
+      "duration": 0.35,
       "steps": [
         {
-          "clip": "kits/milk/clips/bark.wav",
-          "label": "汪",
+          "clip": "kits/milk/clips/woof.wav",
+          "label": "汪（03号）",
           "gain": 1.0,
           "gap": 0,
-          "source": "728026.wav",
+          "source": "396312.mp3",
           "region": [
-            0.07,
-            0.3
+            0.12,
+            0.33
           ],
-          "from_override": null,
-          "to_override": null
+          "source_id": "396312",
+          "author": "cribbler",
+          "title": "Dog play.WAV",
+          "source_url": "https://freesound.org/people/cribbler/sounds/396312/",
+          "preview_url": "https://cdn.freesound.org/previews/396/396312_3728489-hq.mp3",
+          "license": "CC0",
+          "source_format": "mp3_preview",
+          "original_lossless": false,
+          "same_dog_as_milk": false,
+          "candidate_sha256": "1420922a167ef2b4d95e4baaa6be49b8118ea4e550dc73fd4a8fcbbb44bbf47a",
+          "leading_padding_seconds": 0.02,
+          "trailing_padding_seconds": 0.12,
+          "note": "用户选中的03号吠声；来自另一只狗的公开MP3试听源，未获得原始无损文件。候选已高通、淡入淡出、统一峰值；接入只补静音，不变调。"
         }
       ],
-      "sequence": "汪",
-      "sha256": "86b92c7d25c78a0ebf9289a6a51975206ebe8ec842fb7d52daa00fbbfd0135d4"
+      "sequence": "汪（03号）",
+      "source_note": "外部CC0犬吠：cribbler / Dog play.WAV / 396312；公开MP3试听源，非原小狗、非原始无损。",
+      "sha256": "d54e189d6a21cd1f5beba8e0a4e135cf8c4ba4ad4e3bf172552eaaba55dc24be"
     },
     "A2": {
       "code": "idle / holding（刚进入）",
@@ -107,6 +119,10 @@
             0.59,
             1.09
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": 0.82
         },
@@ -120,11 +136,16 @@
             3.81,
             4.05
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         }
       ],
       "sequence": "开心 → 被摸",
+      "source_note": "原奶音：johnnypanic / Puppy / 728022–728030，CC0。",
       "sha256": "1c05f65bae59e3f45b33c3384ecf912f45e2bca79b605f707db7f78bbd1b7909"
     },
     "A3": {
@@ -148,11 +169,16 @@
             2.9,
             3.22
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         }
       ],
       "sequence": "无聊",
+      "source_note": "原奶音：johnnypanic / Puppy / 728022–728030，CC0。",
       "sha256": "eaf5b9fb18f28bbd8d310e1ea54cb7a5259d2bccc86dcb402b6a35d868b1a493"
     },
     "A4": {
@@ -166,7 +192,8 @@
       "filename": null,
       "duration": 0,
       "steps": [],
-      "sequence": "静音"
+      "sequence": "静音",
+      "source_note": "无音频"
     },
     "B1": {
       "code": "transition / handshake_start",
@@ -189,12 +216,16 @@
             3.25,
             3.61
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         },
         {
           "clip": "kits/milk/clips/bark.wav",
-          "label": "汪",
+          "label": "奶音短叫",
           "gain": 1.0,
           "gap": 0,
           "source": "728026.wav",
@@ -202,11 +233,16 @@
             0.07,
             0.3
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         }
       ],
-      "sequence": "警觉 → 汪",
+      "sequence": "警觉 → 奶音短叫",
+      "source_note": "原奶音：johnnypanic / Puppy / 728022–728030，CC0。",
       "sha256": "fada3b6fe6b900beff5afd31c065eae0466c9c1a8437b07a451ff239dbe45af0"
     },
     "B2": {
@@ -230,6 +266,10 @@
             1.56,
             1.82
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         },
@@ -243,11 +283,16 @@
             0.67,
             0.94
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         }
       ],
       "sequence": "好奇 → 疑问",
+      "source_note": "原奶音：johnnypanic / Puppy / 728022–728030，CC0。",
       "sha256": "8b961210c180f3e5f96bc5fdda734a58fbbdf9fa2de05ff0f2ad0226ac74d3e1"
     },
     "B3": {
@@ -271,6 +316,10 @@
             1.09,
             1.3
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         },
@@ -284,11 +333,16 @@
             1.15,
             1.43
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         }
       ],
       "sequence": "兴奋 → 兴奋",
+      "source_note": "原奶音：johnnypanic / Puppy / 728022–728030，CC0。",
       "sha256": "50e7683ef7b19b4d0b98d5eb0c2b32f44a715b0ca847c4a8cbaffb3b1ae19ea7"
     },
     "B4": {
@@ -312,6 +366,10 @@
             0.24,
             0.55
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         },
@@ -325,11 +383,16 @@
             3.81,
             4.05
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         }
       ],
       "sequence": "撒娇 → 被摸",
+      "source_note": "原奶音：johnnypanic / Puppy / 728022–728030，CC0。",
       "sha256": "7e56b579ed072d554f94e44efb03413395b349acdfdd6abb2de0a138a5a9f1c0"
     },
     "B5": {
@@ -345,7 +408,7 @@
       "steps": [
         {
           "clip": "kits/milk/clips/bark.wav",
-          "label": "汪",
+          "label": "奶音短叫",
           "gain": 1.0,
           "gap": 0.2,
           "source": "728026.wav",
@@ -353,6 +416,10 @@
             0.07,
             0.3
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         },
@@ -366,11 +433,16 @@
             0.5,
             0.81
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         }
       ],
-      "sequence": "汪 → 开心",
+      "sequence": "奶音短叫 → 开心",
+      "source_note": "原奶音：johnnypanic / Puppy / 728022–728030，CC0。",
       "sha256": "b015dcc063438c75140beda4e6055acb107a1e7140416f142fc61eaf9ce984b2"
     },
     "C1": {
@@ -394,12 +466,16 @@
             0.67,
             0.94
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         },
         {
           "clip": "kits/milk/clips/bark.wav",
-          "label": "汪",
+          "label": "奶音短叫",
           "gain": 1.0,
           "gap": 0,
           "source": "728026.wav",
@@ -407,11 +483,16 @@
             0.07,
             0.3
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         }
       ],
-      "sequence": "疑问 → 汪",
+      "sequence": "疑问 → 奶音短叫",
+      "source_note": "原奶音：johnnypanic / Puppy / 728022–728030，CC0。",
       "sha256": "a9d3780e3ee338931343bca4757dd81414f644587166359b1ce165b4fbad38d4"
     },
     "C2": {
@@ -435,6 +516,10 @@
             1.15,
             1.43
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         },
@@ -448,6 +533,10 @@
             1.56,
             1.82
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         },
@@ -461,6 +550,10 @@
             1.09,
             1.3
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         },
@@ -474,11 +567,16 @@
             0.5,
             0.81
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         }
       ],
       "sequence": "兴奋 → 好奇 → 兴奋 → 开心",
+      "source_note": "原奶音：johnnypanic / Puppy / 728022–728030，CC0。",
       "sha256": "d3f00f14de8e975ce0895c5e5788037ba308250e130546695b58ccc1a232b2d6"
     },
     "C3": {
@@ -502,12 +600,16 @@
             1.56,
             1.82
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         },
         {
           "clip": "kits/milk/clips/bark.wav",
-          "label": "汪",
+          "label": "奶音短叫",
           "gain": 1.0,
           "gap": 0,
           "source": "728026.wav",
@@ -515,11 +617,16 @@
             0.07,
             0.3
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         }
       ],
-      "sequence": "好奇 → 汪",
+      "sequence": "好奇 → 奶音短叫",
+      "source_note": "原奶音：johnnypanic / Puppy / 728022–728030，CC0。",
       "sha256": "98f86b557f27e2f32abccf11372521706bf199ea161b5c9c8d354cedc98c0bf6"
     },
     "C4": {
@@ -533,7 +640,8 @@
       "filename": null,
       "duration": 0,
       "steps": [],
-      "sequence": "静音"
+      "sequence": "静音",
+      "source_note": "无音频"
     },
     "C5": {
       "code": "active / grasp_closing",
@@ -556,79 +664,105 @@
             11.21,
             11.48
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": 11.32
         }
       ],
       "sequence": "唔",
+      "source_note": "原奶音：johnnypanic / Puppy / 728022–728030，CC0。",
       "sha256": "914fb0caf5247df1267d1be42c9736c8daded244f53a59371e7cc96e7360040a"
     },
     "C6": {
       "code": "paused / complete（抓到了）",
       "scene": "抓取动作结束保持",
       "emo": "开心／兴奋庆祝",
-      "design": "抓到球立即兴奋起声，接一声开心回应，最后两声紧凑连叫、略增强力度，表达兴奋庆祝；保留原始奶音，不变调。",
+      "design": "03号同一段真实犬吠组成「汪！汪汪！」三声庆祝，后两声靠近、音量略增强；整句不混接奶音，不变调。开心程度以试听验收为准。",
       "mode": "sound",
       "selected_variant": 0,
       "file": "定稿音频/C6_抓球成功_开心.wav",
       "filename": "C6_抓球成功_开心.wav",
-      "duration": 1.515,
+      "duration": 1.33,
       "steps": [
         {
-          "clip": "kits/milk/clips/excited_1.wav",
-          "label": "兴奋",
-          "gain": 0.95,
-          "gap": 0.02,
-          "source": "728026.wav",
+          "clip": "kits/milk/clips/woof.wav",
+          "label": "汪（03号）",
+          "gain": 0.9,
+          "gap": 0.18,
+          "source": "396312.mp3",
           "region": [
-            1.09,
-            1.3
+            0.12,
+            0.33
           ],
-          "from_override": null,
-          "to_override": null
+          "source_id": "396312",
+          "author": "cribbler",
+          "title": "Dog play.WAV",
+          "source_url": "https://freesound.org/people/cribbler/sounds/396312/",
+          "preview_url": "https://cdn.freesound.org/previews/396/396312_3728489-hq.mp3",
+          "license": "CC0",
+          "source_format": "mp3_preview",
+          "original_lossless": false,
+          "same_dog_as_milk": false,
+          "candidate_sha256": "1420922a167ef2b4d95e4baaa6be49b8118ea4e550dc73fd4a8fcbbb44bbf47a",
+          "leading_padding_seconds": 0.02,
+          "trailing_padding_seconds": 0.12,
+          "note": "用户选中的03号吠声；来自另一只狗的公开MP3试听源，未获得原始无损文件。候选已高通、淡入淡出、统一峰值；接入只补静音，不变调。"
         },
         {
-          "clip": "kits/milk/clips/happy_2.wav",
-          "label": "开心",
+          "clip": "kits/milk/clips/woof.wav",
+          "label": "汪（03号）",
+          "gain": 0.97,
+          "gap": 0.1,
+          "source": "396312.mp3",
+          "region": [
+            0.12,
+            0.33
+          ],
+          "source_id": "396312",
+          "author": "cribbler",
+          "title": "Dog play.WAV",
+          "source_url": "https://freesound.org/people/cribbler/sounds/396312/",
+          "preview_url": "https://cdn.freesound.org/previews/396/396312_3728489-hq.mp3",
+          "license": "CC0",
+          "source_format": "mp3_preview",
+          "original_lossless": false,
+          "same_dog_as_milk": false,
+          "candidate_sha256": "1420922a167ef2b4d95e4baaa6be49b8118ea4e550dc73fd4a8fcbbb44bbf47a",
+          "leading_padding_seconds": 0.02,
+          "trailing_padding_seconds": 0.12,
+          "note": "用户选中的03号吠声；来自另一只狗的公开MP3试听源，未获得原始无损文件。候选已高通、淡入淡出、统一峰值；接入只补静音，不变调。"
+        },
+        {
+          "clip": "kits/milk/clips/woof.wav",
+          "label": "汪（03号）",
           "gain": 1.0,
-          "gap": 0.015,
-          "source": "728026.wav",
-          "region": [
-            0.5,
-            0.81
-          ],
-          "from_override": null,
-          "to_override": null
-        },
-        {
-          "clip": "kits/milk/clips/excited_2.wav",
-          "label": "兴奋",
-          "gain": 1.08,
-          "gap": 0.005,
-          "source": "728030.wav",
-          "region": [
-            1.15,
-            1.43
-          ],
-          "from_override": null,
-          "to_override": null
-        },
-        {
-          "clip": "kits/milk/clips/excited_1.wav",
-          "label": "兴奋",
-          "gain": 1.15,
           "gap": 0,
-          "source": "728026.wav",
+          "source": "396312.mp3",
           "region": [
-            1.09,
-            1.3
+            0.12,
+            0.33
           ],
-          "from_override": null,
-          "to_override": null
+          "source_id": "396312",
+          "author": "cribbler",
+          "title": "Dog play.WAV",
+          "source_url": "https://freesound.org/people/cribbler/sounds/396312/",
+          "preview_url": "https://cdn.freesound.org/previews/396/396312_3728489-hq.mp3",
+          "license": "CC0",
+          "source_format": "mp3_preview",
+          "original_lossless": false,
+          "same_dog_as_milk": false,
+          "candidate_sha256": "1420922a167ef2b4d95e4baaa6be49b8118ea4e550dc73fd4a8fcbbb44bbf47a",
+          "leading_padding_seconds": 0.02,
+          "trailing_padding_seconds": 0.12,
+          "note": "用户选中的03号吠声；来自另一只狗的公开MP3试听源，未获得原始无损文件。候选已高通、淡入淡出、统一峰值；接入只补静音，不变调。"
         }
       ],
-      "sequence": "兴奋 → 开心 → 兴奋 → 兴奋",
-      "sha256": "de55b6044366ae47d0f84d62e1448e29df541d96b6ff8400b0c77d98b47afc31"
+      "sequence": "汪（03号） → 汪（03号） → 汪（03号）",
+      "source_note": "外部CC0犬吠：cribbler / Dog play.WAV / 396312；公开MP3试听源，非原小狗、非原始无损。",
+      "sha256": "45b5622ad0e47fa78c533a6193bc0f8aad591494d05a8db8ff20c456b7ff700b"
     },
     "D1": {
       "code": "grasp_retry_wait（第 1 次失败）",
@@ -651,12 +785,16 @@
             3.25,
             3.61
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         },
         {
           "clip": "kits/milk/clips/bark.wav",
-          "label": "汪",
+          "label": "奶音短叫",
           "gain": 1.0,
           "gap": 0,
           "source": "728026.wav",
@@ -664,11 +802,16 @@
             0.07,
             0.3
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         }
       ],
-      "sequence": "警觉 → 汪",
+      "sequence": "警觉 → 奶音短叫",
+      "source_note": "原奶音：johnnypanic / Puppy / 728022–728030，CC0。",
       "sha256": "e94a38111bee68491e7d177d787f7e5f5d8424b82287dceec95f741a59833e12"
     },
     "D2": {
@@ -692,6 +835,10 @@
             2.1,
             2.5
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         },
@@ -705,11 +852,16 @@
             0.67,
             0.94
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         }
       ],
       "sequence": "委屈 → 疑问",
+      "source_note": "原奶音：johnnypanic / Puppy / 728022–728030，CC0。",
       "sha256": "81dc4409bf5345dd5c9936c6d1d4bcf927fdc98ac75edc163318a7acdf4da37f"
     },
     "D3": {
@@ -733,6 +885,10 @@
             2.92,
             3.63
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         },
@@ -746,11 +902,16 @@
             4.13,
             4.92
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         }
       ],
       "sequence": "委屈 → 难过",
+      "source_note": "原奶音：johnnypanic / Puppy / 728022–728030，CC0。",
       "sha256": "a19db65b1f5bca1a2af23cbda7eb8e44f8a7b3a51c5cde5c633ebfa38c04b329"
     },
     "D4": {
@@ -766,7 +927,7 @@
       "steps": [
         {
           "clip": "kits/milk/clips/bark.wav",
-          "label": "汪",
+          "label": "奶音短叫",
           "gain": 1.0,
           "gap": 0,
           "source": "728026.wav",
@@ -774,11 +935,16 @@
             0.07,
             0.3
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         }
       ],
-      "sequence": "汪",
+      "sequence": "奶音短叫",
+      "source_note": "原奶音：johnnypanic / Puppy / 728022–728030，CC0。",
       "sha256": "86b92c7d25c78a0ebf9289a6a51975206ebe8ec842fb7d52daa00fbbfd0135d4"
     },
     "E1": {
@@ -802,11 +968,16 @@
             2.6,
             2.81
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         }
       ],
       "sequence": "被摸",
+      "source_note": "原奶音：johnnypanic / Puppy / 728022–728030，CC0。",
       "sha256": "1cb155d5f87ce335fd49de35820f2a637670f7234b1638dbf43ae20ba4b382c2"
     },
     "E2": {
@@ -830,6 +1001,10 @@
             0.59,
             1.09
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": 0.82
         },
@@ -843,11 +1018,16 @@
             3.81,
             4.05
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         }
       ],
       "sequence": "开心 → 被摸",
+      "source_note": "原奶音：johnnypanic / Puppy / 728022–728030，CC0。",
       "sha256": "ddf4a9c647c29dffdba8d421beead31cbbee4307bdd1a7412eb8f56f5084810d"
     },
     "E3": {
@@ -861,7 +1041,8 @@
       "filename": null,
       "duration": 0,
       "steps": [],
-      "sequence": "静音"
+      "sequence": "静音",
+      "source_note": "无音频"
     },
     "E4": {
       "code": "panel 点击复位重新开始",
@@ -876,7 +1057,7 @@
       "steps": [
         {
           "clip": "kits/milk/clips/bark.wav",
-          "label": "汪",
+          "label": "奶音短叫",
           "gain": 1.0,
           "gap": 0.14,
           "source": "728026.wav",
@@ -884,6 +1065,10 @@
             0.07,
             0.3
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         },
@@ -897,40 +1082,57 @@
             0.5,
             0.81
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         }
       ],
-      "sequence": "汪 → 开心",
+      "sequence": "奶音短叫 → 开心",
+      "source_note": "原奶音：johnnypanic / Puppy / 728022–728030，CC0。",
       "sha256": "df01e1b29e1293e6cc2008458637120e7a00f26b8b881c136f12139fea8dd7c4"
     },
     "W1": {
       "code": "触碰唤醒 · 离开 < 1 分钟",
       "scene": "精神抖擞：“我就知道你还在”",
       "emo": "精神抖擞",
-      "design": "一声短促招呼，回应短暂离开后的触碰。",
+      "design": "03号单声汪回应短暂离开后的触碰唤醒；与A1有意复用同一声招呼，不与handshake_start叠播。",
       "mode": "sound",
       "selected_variant": 0,
       "file": "定稿音频/W1_短暂离开_精神唤醒.wav",
       "filename": "W1_短暂离开_精神唤醒.wav",
-      "duration": 0.37,
+      "duration": 0.35,
       "steps": [
         {
-          "clip": "kits/milk/clips/bark.wav",
-          "label": "汪",
+          "clip": "kits/milk/clips/woof.wav",
+          "label": "汪（03号）",
           "gain": 1.0,
           "gap": 0,
-          "source": "728026.wav",
+          "source": "396312.mp3",
           "region": [
-            0.07,
-            0.3
+            0.12,
+            0.33
           ],
-          "from_override": null,
-          "to_override": null
+          "source_id": "396312",
+          "author": "cribbler",
+          "title": "Dog play.WAV",
+          "source_url": "https://freesound.org/people/cribbler/sounds/396312/",
+          "preview_url": "https://cdn.freesound.org/previews/396/396312_3728489-hq.mp3",
+          "license": "CC0",
+          "source_format": "mp3_preview",
+          "original_lossless": false,
+          "same_dog_as_milk": false,
+          "candidate_sha256": "1420922a167ef2b4d95e4baaa6be49b8118ea4e550dc73fd4a8fcbbb44bbf47a",
+          "leading_padding_seconds": 0.02,
+          "trailing_padding_seconds": 0.12,
+          "note": "用户选中的03号吠声；来自另一只狗的公开MP3试听源，未获得原始无损文件。候选已高通、淡入淡出、统一峰值；接入只补静音，不变调。"
         }
       ],
-      "sequence": "汪",
-      "sha256": "86b92c7d25c78a0ebf9289a6a51975206ebe8ec842fb7d52daa00fbbfd0135d4"
+      "sequence": "汪（03号）",
+      "source_note": "外部CC0犬吠：cribbler / Dog play.WAV / 396312；公开MP3试听源，非原小狗、非原始无损。",
+      "sha256": "d54e189d6a21cd1f5beba8e0a4e135cf8c4ba4ad4e3bf172552eaaba55dc24be"
     },
     "W2": {
       "code": "触碰唤醒 · 离开 1–5 分钟",
@@ -953,6 +1155,10 @@
             2.9,
             3.22
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         },
@@ -966,6 +1172,10 @@
             3.36,
             3.56
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         },
@@ -979,11 +1189,16 @@
             3.0,
             3.6
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": 3.11,
           "to_override": null
         }
       ],
       "sequence": "无聊 → 疑问 → 撒娇",
+      "source_note": "原奶音：johnnypanic / Puppy / 728022–728030，CC0。",
       "sha256": "17fafd99fea7b565e4800d84eea952498d7569789e492e312f71a4a4d3f25867"
     },
     "W3": {
@@ -1007,6 +1222,10 @@
             2.92,
             3.63
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         },
@@ -1020,6 +1239,10 @@
             3.81,
             4.05
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         },
@@ -1033,6 +1256,10 @@
             0.5,
             0.81
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         },
@@ -1046,12 +1273,50 @@
             1.09,
             1.3
           ],
+          "author": "johnnypanic",
+          "license": "CC0",
+          "source_format": "wav",
+          "same_dog_as_milk": true,
           "from_override": null,
           "to_override": null
         }
       ],
       "sequence": "委屈 → 被摸 → 开心 → 兴奋",
+      "source_note": "原奶音：johnnypanic / Puppy / 728022–728030，CC0。",
       "sha256": "f3f6f61d47314fbc3fb8050115f84d7b173e854107d384e8ba93f04fe2d59a89"
     }
+  },
+  "sources": {
+    "milk": {
+      "author": "johnnypanic",
+      "ids": "728022–728030",
+      "license": "CC0"
+    },
+    "woof": {
+      "candidate": "bark_candidates/clips/候选03_396312_0.14s.wav",
+      "candidate_sha256": "1420922a167ef2b4d95e4baaa6be49b8118ea4e550dc73fd4a8fcbbb44bbf47a",
+      "source_id": "396312",
+      "title": "Dog play.WAV",
+      "author": "cribbler",
+      "source_url": "https://freesound.org/people/cribbler/sounds/396312/",
+      "preview_url": "https://cdn.freesound.org/previews/396/396312_3728489-hq.mp3",
+      "license": "CC0",
+      "source_format": "mp3_preview",
+      "region": [
+        0.12,
+        0.33
+      ],
+      "event_onset": 0.14,
+      "leading_padding_seconds": 0.02,
+      "trailing_padding_seconds": 0.12,
+      "note": "用户选中的03号吠声；来自另一只狗的公开MP3试听源，未获得原始无损文件。候选已高通、淡入淡出、统一峰值；接入只补静音，不变调。"
+    }
+  },
+  "review_note": "用户于2026-10-31确认采用当前试听版本并授权提交覆盖 audio；验收版本以各 WAV 的 SHA-256 为准。程序检查不代替主观听感判断。",
+  "acceptance": {
+    "status": "accepted_current_audition_version",
+    "date": "2026-10-31",
+    "user_confirmation": "可以了 按之前要求 提交到仓库 覆盖 audio",
+    "scope": "用户确认采用当前试听包；不宣称逐条人工复核已由程序完成。"
   }
 }
