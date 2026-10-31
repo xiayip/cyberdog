@@ -9,7 +9,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -90.31,
     "external_bark": true,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "A2",
@@ -21,7 +22,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -59.18,
     "external_bark": false,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "A3",
@@ -33,7 +35,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -65.7,
     "external_bark": false,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "B1",
@@ -45,7 +48,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -50.48,
     "external_bark": false,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "B2",
@@ -57,7 +61,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -53.04,
     "external_bark": false,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "B3",
@@ -69,7 +74,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -51.62,
     "external_bark": false,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "B4",
@@ -81,7 +87,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -50.22,
     "external_bark": false,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "B5",
@@ -93,7 +100,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -72.25,
     "external_bark": false,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "C1",
@@ -105,7 +113,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -53.04,
     "external_bark": false,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "C2",
@@ -117,7 +126,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -54.75,
     "external_bark": false,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "C3",
@@ -129,7 +139,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -53.04,
     "external_bark": false,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "C5",
@@ -141,7 +152,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -35.49,
     "external_bark": false,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "C6",
@@ -153,7 +165,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -90.31,
     "external_bark": true,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "D1",
@@ -165,7 +178,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -50.48,
     "external_bark": false,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "D2",
@@ -177,7 +191,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -46.96,
     "external_bark": false,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "D3",
@@ -189,7 +204,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -48.95,
     "external_bark": false,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "D4",
@@ -201,7 +217,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -90.31,
     "external_bark": false,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "E1",
@@ -213,7 +230,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -55.35,
     "external_bark": false,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "E2",
@@ -225,7 +243,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -59.18,
     "external_bark": false,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "E4",
@@ -237,7 +256,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -72.25,
     "external_bark": false,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "W1",
@@ -249,7 +269,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -90.31,
     "external_bark": true,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "W2",
@@ -261,7 +282,8 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -55.66,
     "external_bark": false,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   },
   {
     "event": "W3",
@@ -273,6 +295,7 @@
     "pcm_roundtrip": true,
     "edge_1ms_peak_dbfs": -50.4,
     "external_bark": false,
-    "listening_acceptance": "pending_user_review"
+    "listening_acceptance": "accepted_current_audition_version",
+    "acceptance_date": "2026-10-31"
   }
 ]
