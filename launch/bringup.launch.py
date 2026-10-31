@@ -133,6 +133,7 @@ def stages(context):
     game = [include('cyberdog', 'cyberdog.launch.py', config=share('cyberdog', 'config', 'cyberdog.yaml'),
                     motion_backend='trajectory', motion_enabled='true', senses_backend='camera',
                     panel=str(panel).lower(),ball_detector=LaunchConfiguration('ball_detector').perform(context),
+                    audio=LaunchConfiguration('audio').perform(context),
                     senses_python=LaunchConfiguration('senses_python').perform(context)),
             LogInfo(msg='Cyberdog started paused: the arm moves only after "复位". Ctrl+C stops everything.')]
     if arg('preview'):
@@ -156,6 +157,7 @@ def generate_launch_description():
         DeclareLaunchArgument('senses_python', default_value=os.path.join(os.path.dirname(os.path.dirname(get_package_prefix('cyberdog'))),
             '.cyberdog-yolo/bin/python')),
         DeclareLaunchArgument('panel', default_value='true', description='Tk button panel on $DISPLAY (default :1)'),
+        DeclareLaunchArgument('audio', default_value='true', description='Stage sound effects in a separate node'),
         DeclareLaunchArgument('preview', default_value='false', description='rqt_image_view of the annotated camera'),
         DeclareLaunchArgument('use_mock_hardware', default_value='false',
                               description='ros2_control mock instead of CAN (rehearsal; the camera is still real)'),

@@ -4,13 +4,14 @@ import time
 from action_msgs.msg import GoalStatus, GoalStatusArray
 from control_msgs.action import ParallelGripperCommand
 from rclpy.action import ActionClient
-from rclpy.qos import qos_profile_action_status_default
+from rclpy.qos import qos_profile_action_status_default, qos_profile_sensor_data
+from sensor_msgs.msg import JointState
 from trajectory_msgs.msg import JointTrajectoryPoint, JointTrajectory
 from builtin_interfaces.msg import Duration
 from .common import param, finite
 from .controller_modes import ControllerModes
-from .game_core import path_points, pose
-from .motion import Motion, LOWER, UPPER, bounded_start
+from .game_core import path_points, bow_points, pose
+from .motion import Motion, LOWER, UPPER, MAX_SCALED_PATH_SPEED, bounded_start
 from .tracking import tracking_step
 
 
@@ -38,8 +39,8 @@ class Robot:
         # The old direct tracker had no acceleration ramp. Use the ordinary
         # motion acceleration envelope as an explicit new tracking bound.
         self.tracking_acceleration=.65*self.motion.limit_scale
-        self.ball_tracking_speed=finite(param(node,'ball_tracking_speed',self.tracking_speed),.1,.9,'ball tracking speed')
-        self.ball_tracking_acceleration=finite(param(node,'ball_tracking_acceleration',self.tracking_acceleration),.1,1.5,'ball tracking acceleration')
+        self.ball_tracking_speed=finite(param(node,'ball_tracking_speed',self.tracking_speed),.1,1.2,'ball tracking speed')
+        self.ball_tracking_acceleration=finite(param(node,'ball_tracking_acceleration',self.tracking_acceleration),.1,2.4,'ball tracking acceleration')
         self.tracking_yaw_range=finite(param(node,'ball_tracking_yaw_range',1.2),.1,3.14,'tracking yaw range')
         self.tracking_pitch_range=finite(param(node,'ball_tracking_pitch_range',1.0),.1,3.14,'tracking pitch range')
         self.callback=None
@@ -49,7 +50,13 @@ class Robot:
         self.error_since=None
         self.gripper_enabled=param(node,'gripper_enabled',False)
         self.gripper_open_only=param(node,'gripper_open_only',False)
+        self.gripper_close_speed=finite(param(node,'gripper_close_speed',.6),.05,1.,'gripper close speed')
+        self.gripper_open_speed=finite(param(node,'gripper_open_speed',.3),.05,1.,'gripper open speed')
+        self.gripper_close_position=finite(param(node,'gripper_close_position',.95),.01,1.,'gripper close position')
         self.gripper_joint=param(node,'gripper_joint','gripper_command_joint')
+        self.gripper_position=None;self.gripper_position_at=0.;self.gripper_position_stamp=0.
+        self.gripper_joint_sub=node.create_subscription(JointState,node.get_parameter('joint_states_topic').value,
+            self.gripper_joint_state,qos_profile_sensor_data)
         self.gripper_name=param(node,'gripper_action','/rebot_arm_rs_gripper_controller/gripper_cmd')
         self.gripper=ActionClient(node,ParallelGripperCommand,self.gripper_name)
         self.gripper_other_busy=False
@@ -101,17 +108,23 @@ class Robot:
         self.servo=False
         return self.modes.request(target,done)
 
-    def move(self,targets,callback,speed=.12,minimum=1.):
+    def move(self,targets,callback,speed=.12,minimum=1.,*,inspection=False,time_scale=1.):
         if self.busy or self.servo:return False,'robot busy or servo active'
         if not self.fresh():return False,'joint feedback unavailable'
         if not math.isfinite(speed) or not 0<speed<=.4*self.motion.limit_scale:
             return False,'path speed exceeds ordinary motion envelope'
         try:
+            time_scale=finite(time_scale,.5,1.,'path time scale')
+            if inspection and time_scale!=1.:raise ValueError('inspection cannot use lift time scaling')
+            if speed/time_scale>MAX_SCALED_PATH_SPEED:raise ValueError('scaled path speed exceeds 1.2 rad/s')
             targets=[pose(p) for p in targets]
-            path_points(bounded_start(self.current),targets,speed,minimum,.65*self.motion.limit_scale)
+            acceleration=self.motion.acceleration_limits(inspection)
+            path_points(bounded_start(self.current),targets,speed,minimum,acceleration,time_scale=time_scale)
         except ValueError as exc:return False,str(exc)
         self.callback,self.move_target=callback,targets[-1]
-        accepted,reason=self.motion.start_path(lambda current:path_points(current,targets,speed,minimum,.65*self.motion.limit_scale))
+        accepted,reason=self.motion.start_path(
+            lambda current:path_points(current,targets,speed,minimum,acceleration,time_scale=time_scale),
+            inspection=inspection,time_scale=time_scale)
         if self.mock and accepted:self.motion.deadline=time.monotonic()+self.mock_delay
         if not accepted:self.callback=None
         return accepted,reason
@@ -124,6 +137,25 @@ class Robot:
             self.verifying=(time.monotonic(),None)
             return
         self.move_complete(ok,message)
+
+    def bow(self,target,callback,*,speed=.6,speed_scale=3.):
+        if self.busy or self.servo:return False,'robot busy or servo active'
+        if not self.fresh():return False,'joint feedback unavailable'
+        try:
+            speed=finite(speed,.01,.4*self.motion.limit_scale,'bow base speed')
+            target=pose(target);start=bounded_start(self.current)
+            acceleration=self.motion.acceleration_limits()
+            # The held command may differ slightly from measured feedback.
+            # The reference is checked again just before action submission.
+            anchor=start if self.mock else bounded_start(self.motion.reference_pose,'JTC reference')
+            bow_points(anchor,target,speed,acceleration,speed_scale)
+        except ValueError as exc:return False,str(exc)
+        self.callback,self.move_target=callback,target
+        accepted,reason=self.motion.start_path(
+            lambda current:bow_points(current,target,speed,acceleration,speed_scale),bow=True)
+        if self.mock and accepted:self.motion.deadline=time.monotonic()+self.mock_delay
+        if not accepted:self.callback=None
+        return accepted,reason
 
     def move_complete(self,ok,message):
         callback,self.callback=self.callback,None
@@ -197,7 +229,24 @@ class Robot:
                 self.modes.telemetry={name:(0.,False) for name in self.modes.telemetry}
 
     def grip(self,closed,callback):
-        return self.grip_position(1. if closed else 0.,callback,allow_stall=bool(closed))
+        return self.grip_position(self.gripper_close_position if closed else 0.,callback,allow_stall=bool(closed))
+
+    def gripper_joint_state(self,msg):
+        # A command or action result is not continuing measured gripper feedback.
+        if self.gripper_joint not in msg.name:return
+        try:
+            stamp=msg.header.stamp.sec+msg.header.stamp.nanosec*1e-9
+            if stamp<=self.gripper_position_stamp:return
+            age=self.node.get_clock().now().nanoseconds*1e-9-stamp
+            value=finite(msg.position[msg.name.index(self.gripper_joint)],0.,1.,'gripper feedback')
+            if not 0<=age<=.25:raise ValueError('stale gripper feedback')
+            self.gripper_position=value;self.gripper_position_at=time.monotonic()-age
+            self.gripper_position_stamp=stamp
+        except (ValueError,IndexError):
+            self.gripper_position=None;self.gripper_position_at=0.
+
+    def fresh_gripper_position(self):
+        return self.gripper_position if time.monotonic()-self.gripper_position_at<=.25 else None
 
     def grip_position(self,position,callback,*,allow_stall=False):
         try:position=finite(position,0.,1.,'gripper position must be 0..1')
@@ -215,7 +264,7 @@ class Robot:
         goal=ParallelGripperCommand.Goal()
         goal.command.name=[self.gripper_joint]
         goal.command.position=[position]
-        goal.command.velocity=[.15]
+        goal.command.velocity=[self.gripper_close_speed if position>0 else self.gripper_open_speed]
         if position==0:goal.command.effort=[.4]
         try:self.gripper.send_goal_async(goal).add_done_callback(self.grip_accepted)
         except Exception:self.fault='gripper submission unknown'

@@ -2,6 +2,7 @@
 import time
 
 import pytest
+from action_msgs.msg import GoalStatus
 from control_msgs.action import FollowJointTrajectory
 from control_msgs.msg import JointTrajectoryControllerState
 from controller_manager_msgs.msg import ControllerState
@@ -154,7 +155,9 @@ class FakeGameRobot(FakeRobot):
     def telemetry(self):
         if not self.emit_telemetry:return
         measured=[q+offset for q,offset in zip(self.position,self.measured_offset)]
-        msg=JointState(name=JOINTS,position=measured,velocity=[0.]*6,effort=list(self.effort or []))
+        msg=JointState(name=list(JOINTS),position=measured,velocity=[0.]*6,effort=list(self.effort or []))
+        if getattr(self,'gripper_position',None) is not None:
+            msg.name.append('gripper_command_joint');msg.position.append(self.gripper_position);msg.velocity.append(0.)
         msg.header.stamp=self.get_clock().now().to_msg()
         self.joint_pub.publish(msg)
         for name,pub in ((JTC,self.imp_state_pub),(POS,self.state_pub)):
@@ -171,6 +174,6 @@ class FakeGameRobot(FakeRobot):
 
     def execute(self,handle):
         result=super().execute(handle)
-        if not handle.is_cancel_requested:self.position=list(handle.request.trajectory.points[-1].positions)
+        if handle.status==GoalStatus.STATUS_SUCCEEDED:self.position=list(handle.request.trajectory.points[-1].positions)
         return result
 

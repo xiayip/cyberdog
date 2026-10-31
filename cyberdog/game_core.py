@@ -1,7 +1,8 @@
 """Deterministic gameplay helpers; no ROS or hardware side effects."""
 import math
 from ghost_game_orchestrator.mock_trajectory import minimum_quintic_duration
-from .motion import JOINTS, LOWER, UPPER, bounded_start
+from .common import finite
+from .motion import JOINTS, LOWER, UPPER, MAX_PATH_SPEED, bounded_start, validate_bow_path
 
 
 def pose(value):
@@ -23,12 +24,16 @@ def inspection_poses(start,wrist_delta,head_offsets):
     return wrist,heads
 
 
-def path_points(start, targets, speed=.12, minimum=1., acceleration=None):
+def path_points(start, targets, speed=.12, minimum=1., acceleration=None, *, time_scale=1.):
     start = pose(start)
-    if not targets or not 0 < speed <= .6 or not math.isfinite(minimum) or minimum < .2:
+    time_scale=finite(time_scale,.5,1.,'path time scale')
+    if not targets or not 0 < speed <= MAX_PATH_SPEED or not math.isfinite(minimum) or minimum < .2:
         raise ValueError('invalid path settings')
-    if acceleration is not None and (not math.isfinite(acceleration) or acceleration<=0):
-        raise ValueError('invalid acceleration limit')
+    if acceleration is not None:
+        limits=list(acceleration) if isinstance(acceleration,(list,tuple)) else [acceleration]*6
+        if len(limits)!=6 or any(isinstance(a,bool) or not isinstance(a,(int,float))
+                                or not math.isfinite(a) or a<=0 for a in limits):
+            raise ValueError('invalid acceleration limit')
     points, elapsed, previous = [(.2, start)], .2, start
     for target in targets:
         target = pose(target)
@@ -36,11 +41,22 @@ def path_points(start, targets, speed=.12, minimum=1., acceleration=None):
         if acceleration is not None:
             # Zero endpoint velocity/acceleration gives a quintic segment whose
             # peak acceleration is (10/sqrt(3))*distance/duration**2.
-            distance=max(abs(a-b) for a,b in zip(previous,target))
-            duration=max(duration,math.sqrt((10/math.sqrt(3))*distance/acceleration))
+            duration=max(duration,*(math.sqrt((10/math.sqrt(3))*abs(a-b)/limit)
+                                   for a,b,limit in zip(previous,target,limits)))
         elapsed += duration
         points.append((elapsed, target))
         previous = target
     if elapsed > 60.:
         raise ValueError('path longer than 60 seconds; split into separate stages')
+    # Time scaling the zero-derivative endpoints also scales the JTC's entire
+    # quintic segment: peak velocity / scale, peak acceleration / scale**2.
+    return [(at*time_scale, target) for at,target in points]
+
+
+def bow_points(start,target,speed,acceleration,speed_scale=3.):
+    """Speed up a J4-only bow by scaling its complete quintic time axis."""
+    speed_scale=finite(speed_scale,1.,3.,'bow speed scale')
+    points=path_points(start,[target],speed,.65,acceleration)
+    points=[(at/speed_scale,q) for at,q in points]
+    validate_bow_path(points,start)
     return points

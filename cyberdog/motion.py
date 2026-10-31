@@ -24,6 +24,31 @@ UPPER = [2.8, 3.14, 3.14, 1.57, 1.57, 3.14]
 # Feedback and a controller's measured-state handover reference can sit just
 # outside a limit. This allowance applies only to captured starts, never goals.
 START_POSITION_TOLERANCE = .002
+# Application envelopes, below the Zephyr model's minimum 1.5 rad/s and
+# 10 rad/s² joint limits. They do not change motor torque or controller guards.
+MAX_PATH_SPEED = .8
+MAX_PATH_ACCELERATION = 1.3
+MAX_SCALED_PATH_SPEED = 1.2
+# Only the isolated J4 bow may use this envelope. Zephyr's J4 model permits
+# 2.5 rad/s and 20 rad/s²; shoulder/elbow and ordinary paths stay unchanged.
+MAX_BOW_SPEED = 2.4
+MAX_BOW_ACCELERATION = 12.
+
+
+def validate_bow_path(points, anchor):
+    """Check the entire zero-derivative quintic, not just its stopped endpoints."""
+    if len(points)!=2 or any(len(p)!=2 for p in points):
+        raise ValueError('bow requires one stopped J4 segment')
+    (start_at,start),(end_at,target)=points
+    if (list(start)!=list(anchor) or len(target)!=6
+            or any(target[i]!=anchor[i] for i in (0,1,2,4,5))):
+        raise ValueError('bow may move only J4 from the held reference')
+    distance=start[3]-target[3];duration=end_at-start_at
+    if not 0<distance<=.5+1e-9 or not math.isfinite(duration) or duration<=0:
+        raise ValueError('bow requires a bounded downward J4 segment')
+    if (1.875*distance/duration>MAX_BOW_SPEED+1e-9
+            or (10/math.sqrt(3))*distance/duration**2>MAX_BOW_ACCELERATION+1e-9):
+        raise ValueError('bow exceeds J4 velocity or acceleration envelope')
 
 
 def bounded_start(value, source='measured'):
@@ -58,7 +83,12 @@ class Motion:
             raise ValueError('motion_backend must be mock or trajectory')
         self.action_name = param(node, 'trajectory_action',
                                  f'/{self.prefix}_trajectory_controller/follow_joint_trajectory')
-        self.limit_scale = finite(param(node, 'motion_limit_scale', 1.), 1., 1.5, 'motion limit scale')
+        self.limit_scale = finite(param(node, 'motion_limit_scale', 1.), 1., 2., 'motion limit scale')
+        self.inspection_acceleration = finite(param(node, 'handshake_inspection_acceleration', 2.4),
+                                              .1, 2.4, 'inspection acceleration')
+        self.path_inspection = False
+        self.path_time_scale = 1.
+        self.path_bow = False
         tolerance=param(node,'settled_position_tolerance',[.03]*6)
         if len(tolerance)!=6:raise ValueError('settled_position_tolerance requires six joint tolerances')
         self.settled_position_tolerance=[finite(v,.01,.05,'settled position tolerance') for v in tolerance]
@@ -199,20 +229,45 @@ class Motion:
             self.manager.call_async(ListControllers.Request()).add_done_callback(self.preflight_done)
         return True, 'accepted'
 
-    def start_path(self, factory):
+    def acceleration_limits(self, inspection=False, time_scale=1.):
+        limits = [.65*self.limit_scale]*6
+        if inspection:
+            limits[3] = limits[5] = self.inspection_acceleration
+        return [limit/time_scale**2 for limit in limits]
+
+    def start_path(self, factory, *, inspection=False, time_scale=1., bow=False):
         if self.busy:
             return False, 'motion busy'
         if self.backend not in {'mock', 'trajectory'}:
             return False, 'paths require mock or trajectory backend'
+        if type(inspection) is not bool:
+            return False, 'invalid inspection profile'
+        try:time_scale=finite(time_scale,.5,1.,'path time scale')
+        except ValueError as exc:return False,str(exc)
+        if inspection and time_scale!=1.:
+            return False, 'inspection cannot use lift time scaling'
+        if type(bow) is not bool or (bow and (inspection or time_scale!=1.)):
+            return False, 'bow cannot combine with other motion profiles'
+        if bow and self.backend!='mock' and self.prefix!='zephyr_arm':
+            return False, 'fast bow requires the Zephyr J4 envelope'
+        self.path_inspection = inspection
+        self.path_time_scale = time_scale
+        self.path_bow = bow
         self.path_factory = factory
         accepted, reason = self.start()
         if not accepted:
             self.path_factory = None
+            self.path_inspection = False
+            self.path_time_scale = 1.
+            self.path_bow = False
         return accepted, reason
 
     def finish(self, success, message):
         self.busy, self.phase, self.handle = False, 'idle', None
         self.path_factory = None
+        self.path_inspection = False
+        self.path_time_scale = 1.
+        self.path_bow = False
         self.report(success, message)
 
     def preflight_done(self, future):
@@ -240,10 +295,9 @@ class Motion:
                 bounded_start(self.pose)
                 anchor = bounded_start(self.reference_pose, 'JTC reference')
                 points = self.path_factory(anchor)
-                velocity_limits = [.4]*6
-                acceleration_limit = .65
-                velocity_limits = [v*self.limit_scale for v in velocity_limits]
-                acceleration_limit *= self.limit_scale
+                if self.path_bow:validate_bow_path(points,anchor)
+                velocity_limits = [min(MAX_SCALED_PATH_SPEED,.4*self.limit_scale/self.path_time_scale)]*6
+                acceleration_limits = self.acceleration_limits(self.path_inspection,self.path_time_scale)
                 previous = 0.
                 for sample in points:
                     if len(sample) == 2:
@@ -256,7 +310,7 @@ class Motion:
                             or not all(math.isfinite(v) for row in (pose, velocity, acceleration) for v in row)
                             or any(not lo <= q <= hi for q,lo,hi in zip(pose, LOWER, UPPER))
                             or any(abs(v) > limit for v, limit in zip(velocity, velocity_limits))
-                            or any(abs(a) > acceleration_limit for a in acceleration)):
+                            or any(abs(a) > limit for a,limit in zip(acceleration, acceleration_limits))):
                         raise ValueError('invalid or excessive trajectory sample')
                     previous = at
                     point = JointTrajectoryPoint(positions=pose, velocities=velocity,

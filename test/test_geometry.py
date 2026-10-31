@@ -4,15 +4,15 @@ import pytest
 from cyberdog.ball_grasp_geometry import WorldStillGate,locate_ball,preview_waypoints,rotation
 
 
-def test_three_seconds_require_continuous_world_stationarity_and_fresh_samples():
+def test_one_second_requires_continuous_world_stationarity_and_fresh_samples():
     g=WorldStillGate()
-    for i in range(30):assert not g.update([.2,0,.1],i*.1)
-    assert g.update([.2,0,.1],3.)
-    assert not g.update([.2,0,.1],3.)
-    assert not g.update([.23,0,.1],3.1)
-    assert not g.update([.23,0,.1],4.)
+    for i in range(10):assert not g.update([.2,0,.1],i*.1)
+    assert g.update([.2,0,.1],1.)
+    assert not g.update([.2,0,.1],1.)
+    assert not g.update([.26,0,.1],1.1)
+    assert not g.update([.26,0,.1],2.)
     g.reset()
-    for i in range(50):assert not g.update([.2+i*.003,0,.1],i*.1)
+    for i in range(50):assert not g.update([.2+i*.006,0,.1],i*.1)
 
 
 def test_rgbd_sphere_center_and_invalid_depth():
@@ -32,6 +32,12 @@ def test_rgbd_sphere_center_and_invalid_depth():
 
 def test_grasp_path_has_only_four_stages():
     assert [p['stage'] for p in preview_waypoints([.3,0.,.1],.025)]==['approach','pregrasp','grasp','lift']
+
+
+def test_direct_joint_placement_precheck_ends_at_grasp_and_never_plans_a_lift():
+    points=preview_waypoints([.3,0.,.1],.025,include_lift=False)
+    assert [p['stage'] for p in points]==['approach','pregrasp','grasp']
+    assert points[-1]['position']==[.3,0.,.1]
 
 
 def test_cartesian_path_may_leave_zero_reset_but_never_exceed_joint_limits():
@@ -74,8 +80,8 @@ def test_all_close_and_distant_approach_segments_advance(forward):
     assert np.all(np.diff(z)>0)
 
 
-@pytest.mark.parametrize('center',[[0,0,-.2],[0,0,.02],[.2,0,.1]])
-def test_ball_behind_too_close_or_far_sideways_cannot_make_grasp_path(center):
+@pytest.mark.parametrize('center',[[0,0,-.2],[0,0,.005],[.2,0,.02]])
+def test_ball_behind_or_outside_near_capture_region_cannot_make_grasp_path(center):
     with pytest.raises(ValueError):
         preview_waypoints(center,.025,orientation=[0,0,0,1],tcp_position=[0,0,0])
 

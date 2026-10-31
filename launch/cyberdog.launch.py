@@ -23,10 +23,13 @@ def generate_launch_description():
         DeclareLaunchArgument('senses_backend',default_value='mock'),
         DeclareLaunchArgument('mock_ball_visible',default_value='false'),
         DeclareLaunchArgument('panel',default_value='true'),
+        DeclareLaunchArgument('audio',default_value='true'),
         DeclareLaunchArgument('grasp_planning',default_value='false'),
         IncludeLaunchDescription(PythonLaunchDescriptionSource([FindPackageShare('zephyr_arm_moveit_config'),
             '/launch/move_group.launch.py']),condition=IfCondition(LaunchConfiguration('grasp_planning'))),
         DeclareLaunchArgument('senses_python',default_value=runtime if os.path.isfile(runtime) else ''),
+        Node(package='cyberdog',executable='audio',name='cyberdog_audio',output='screen',
+             parameters=[config],condition=IfCondition(LaunchConfiguration('audio'))),
         Node(package='cyberdog',executable='behavior',name='cyberdog',output='screen',parameters=[config,{
             'motion_backend':LaunchConfiguration('motion_backend'),
             'motion_enabled':ParameterValue(LaunchConfiguration('motion_enabled'),value_type=bool)}]),

@@ -72,16 +72,15 @@ def test_only_j3_triggers_j4_lift_then_j6_inspection_then_handshake_pose_and_dam
         assert g.state=='idle'
         g.robot.mock_pose[3]=0.;g.robot.mock_pose[2]=.05
         start=list(g.robot.current);moves=[];move=g.robot.move
-        def record(targets,cb,*args):
+        def record(targets,cb,*args,**kwargs):
             moves.append((g.phase,[list(p) for p in targets],g.robot.modes.mode))
-            return move(targets,cb,*args)
+            return move(targets,cb,*args,**kwargs)
         g.robot.move=record
         until(e,lambda:g.phase=='handshake')
-        assert [p for p,_,_ in moves]==['wrist_lift','head_tilt','head_tilt','lifting']
-        wrist=start[:];wrist[3]+=.25
+        assert [p for p,_,_ in moves]==['wrist_lift','head_tilt','lifting']
+        wrist=start[:];wrist[3]+=.40
         left=wrist[:];left[5]+=.25
-        right=wrist[:];right[5]-=.25
-        assert [targets for _,targets,_ in moves]==[[wrist],[left],[right],[g.lift]]
+        assert [targets for _,targets,_ in moves]==[[wrist],[left],[g.lift]]
         assert all(mode=='position' for _,_,mode in moves)
         assert g.robot.current==g.lift
         assert g.robot.current[1:3]==[.6,.8]
@@ -108,10 +107,12 @@ def test_touch_noise_stale_samples_and_torque_baseline():
     assert d.baseline is None
 
 
-def test_ball_automatically_tracks_from_zero_pose_and_grabs_after_three_seconds():
+def test_ball_automatically_tracks_from_zero_pose_and_grabs_after_one_second():
     with graph((Cyberdog,Senses),['mock_ball_visible:=true']) as ([g,s],e):
-        stages=[];original=g.set_state;events=[]
-        def state(a,b,c):stages.append(b);original(a,b,c)
+        stages=[];original=g.set_state;events=[];grasp_started=[]
+        def state(a,b,c):
+            stages.append(b);original(a,b,c)
+            if b=='grasp_settling':grasp_started.append(time.monotonic())
         g.set_state=state
         grip=g.robot.grip
         def record(closed,cb):events.append((closed,g.phase));return grip(closed,cb)
@@ -119,14 +120,18 @@ def test_ball_automatically_tracks_from_zero_pose_and_grabs_after_three_seconds(
         assert g.command('reset')[0]
         until(e,lambda:g.phase=='tracking')
         start=time.monotonic()
-        spin(e,2.5)
-        assert not any(closed for closed,_ in events)
+        assert g.ball_still_sec==1. and g.ball_sequence.status()['dwell_sec']==1.
+        assert '稳定 1 秒后抓取' in g.message
+        spin(e,.65)
+        assert not grasp_started and not any(closed for closed,_ in events)
         until(e,lambda:g.phase=='complete',timeout=6.)
-        assert time.monotonic()-start>=3.
+        assert len(grasp_started)==1 and .95<=grasp_started[0]-start<2.
         assert [p for p in stages if p.startswith('grasp_')]==[
-            'grasp_settling','grasp_approach','grasp_pregrasp','grasp_grasp','grasp_closing','grasp_lift']
-        assert [(closed,phase) for closed,phase in events if closed]==[(True,'grasp_closing')]
-        assert g.robot.grip_closed and g.state=='paused' and not g.ball_sequence.busy
+            'grasp_settling','grasp_approach','grasp_closing',
+            'grasp_place','grasp_releasing']
+        assert [(closed,phase) for closed,phase in events if phase.startswith('grasp_')]==[(False,'grasp_settling'),(True,'grasp_closing'),(False,'grasp_releasing')]
+        assert not g.robot.grip_closed and g.state=='paused' and not g.ball_sequence.busy
+        assert g.robot.current==g.ball_sequence.place_joint_pose
 
 
 def test_ball_detected_in_damping_enters_tracking_without_gesture():
@@ -141,7 +146,7 @@ def test_ball_detected_in_damping_enters_tracking_without_gesture():
 @pytest.mark.parametrize('stop',['stop','loss'])
 def test_stop_or_loss_during_approach_never_closes(stop):
     with graph((Cyberdog,Senses),['mock_ball_visible:=true','ball_still_sec:=0.5','mock_step_sec:=0.25',
-                                'grasp_continue_on_loss:=false','grasp_max_attempts:=1']) as ([g,s],e):
+                                'grasp_blind_after_lock:=false','grasp_continue_on_loss:=false','grasp_max_attempts:=1']) as ([g,s],e):
         g.command('reset');until(e,lambda:g.phase=='grasp_approach')
         if stop=='stop':g.command('stop')
         else:s.mock_ball_visible=False
@@ -151,11 +156,11 @@ def test_stop_or_loss_during_approach_never_closes(stop):
 
 
 def test_still_gate_resets_when_ball_moves_or_frames_are_missing():
-    gate=WorldStillGate(3.)
+    gate=WorldStillGate(3.,max_gap=.8)
     for i in range(30):assert not gate.update([.3,0.,.1],i*.1)
     assert gate.update([.3,0.,.1],3.)
-    assert not gate.update([.32,0.,.1],3.1)
-    assert not gate.update([.32,0.,.1],4.)
+    assert not gate.update([.36,0.,.1],3.1)
+    assert not gate.update([.36,0.,.1],4.)
     assert not gate.update([float('nan'),0.,.1],4.1)
 
 
@@ -165,6 +170,7 @@ def test_incomplete_plan_cannot_send_or_close(fraction):
         seq=g.ball_sequence;g.mode='ball';seq.running=True;seq.phase='full_plan'
         seq.attempts=1
         seq.deadline=time.monotonic()+5;seq.target=dict(center=[.3,0.,.1]);seq.frozen=[.3,0.,.1]
+        seq.frozen_radius=.025
         seq.target_at=time.monotonic();seq.feedback=([0.,.6,.8,0.,0.,0.],0.);seq.feedback_at=time.monotonic()
         g.robot.mock=False;g.robot.fresh=lambda:True
         seq.future=Future();seq.future.set_result(SimpleNamespace(error_code=SimpleNamespace(val=1),fraction=fraction))
@@ -208,16 +214,16 @@ def test_zero_reset_axes_remain_fixed_during_tracking():
             assert not g.robot.fault
 
 
-def test_short_dropouts_allow_three_second_grasp_only_after_fresh_reconfirmation(monkeypatch):
+def test_short_dropouts_allow_one_second_grasp_only_after_fresh_reconfirmation(monkeypatch):
     with graph() as ([g],e):
         g.mode='ball';g.state='active';s=g.ball_sequence
         base=g.get_clock().now().nanoseconds*1e-9
         with monkeypatch.context() as m:
             stamp=[base]
             m.setattr(g,'get_clock',lambda:SimpleNamespace(now=lambda:SimpleNamespace(nanoseconds=int(stamp[0]*1e9)+1000)))
-            for i in range(31):
+            for i in range(11):
                 stamp[0]=base+i*.1
-                missing=i in (7,14,21,28)
+                missing=i==7
                 s.observe(dict(stamp=stamp[0],valid=True,source='mock',ball=None if missing else {'x':0.}))
                 if missing:
                     assert not s.stable and not s.target_valid()
@@ -232,9 +238,9 @@ def test_long_dropout_or_real_movement_restarts_dwell():
         target=dict(center=[.3,0.,.1],radius=.025)
         for i in range(29):s.accept(target,base+i*.1)
         s.reject(ValueError('target unavailable'),transient=True)
-        s.accept(target,base+3.1)
+        s.accept(target,base+4.4)
         assert not s.stable and s.still_sec==0
-        s.accept(dict(target,center=[.32,0.,.1]),base+3.2)
+        for t in (4.5,4.6,4.7,4.8):s.accept(dict(target,center=[.4,0.,.1]),base+t)
         assert not s.stable and s.still_sec==0
 
 

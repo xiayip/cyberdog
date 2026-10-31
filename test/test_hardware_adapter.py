@@ -1,5 +1,10 @@
 import time
+import math
+from pathlib import Path
+import yaml
+import pytest
 from cyberdog.behavior import Cyberdog
+from cyberdog.game_core import path_points
 from cyberdog.controller_modes import BASE, POS, observed
 from fake_hardware import FakeGameRobot, executor
 from test_behavior import graph, until, spin
@@ -9,10 +14,23 @@ PARAMS=['motion_backend:=trajectory','motion_enabled:=true','required_guard_node
 
 
 def test_ros_reset_j3_pull_lift_then_verified_damping():
-    with graph((Cyberdog,FakeGameRobot),PARAMS,executor) as ([g,r],e):
+    config=yaml.safe_load((Path(__file__).parents[1]/'config/cyberdog.yaml').read_text())['cyberdog']['ros__parameters']
+    pace=['motion_limit_scale','pose_speed','handshake_pose_speed','handshake_lift_time_scale',
+          'handshake_wrist_delta','handshake_head_offsets','handshake_head_hold_sec',
+          'handshake_inspection_speed','handshake_inspection_acceleration','handshake_inspection_min_sec']
+    parameters=PARAMS+[f'{name}:={config[name]}' for name in pace]
+    with graph((Cyberdog,FakeGameRobot),parameters,executor) as ([g,r],e):
         assert g.command('reset')[0]
         until(e,lambda:g.state=='idle',timeout=8.)
         assert r.position==g.home and g.robot.modes.mode=='position'
+        def peak_motion(request):
+            first,last=request.trajectory.points
+            duration=(last.time_from_start.sec-first.time_from_start.sec
+                +(last.time_from_start.nanosec-first.time_from_start.nanosec)*1e-9)
+            distance=max(abs(a-b) for a,b in zip(first.positions,last.positions))
+            # Analytic extrema of the JTC zero-velocity/acceleration quintic.
+            return 1.875*distance/duration,(10/math.sqrt(3))*distance/duration**2
+        assert .24<peak_motion(r.requests[-1])[0]<=.36+1e-8
         initial=len(r.requests)
         # Alter only a different joint: no handshake.
         r.position[4]=.05;spin(e,.5)
@@ -20,10 +38,28 @@ def test_ros_reset_j3_pull_lift_then_verified_damping():
         r.position[4]=0.;r.position[2]=.06
         until(e,lambda:g.phase=='handshake',timeout=14.)
         poses=[list(req.trajectory.points[-1].positions) for req in r.requests[initial:]]
-        assert len(poses)==4
-        assert poses[0][:3]==[g.home[0],0.,.06] and poses[0][3:]==[.25,0.,0.]
+        assert len(poses)==3
+        assert poses[0][:3]==[g.home[0],0.,.06] and poses[0][3:]==[.40,0.,0.]
         assert poses[1][:5]==poses[0][:5] and poses[1][5]==.25
-        assert poses[2][:5]==poses[0][:5] and poses[2][5]==-.25
+        assert g.handshake_speed==.6 and g.head_hold==.08 and g.inspection_speed==.8
+        assert g.inspection_minimum==.65
+        assert g.lift_time_scale==.5
+        for index,request in enumerate(r.requests[initial:]):
+            velocity,acceleration=peak_motion(request)
+            assert .24<velocity<=(.8 if index<2 else 1.2)+1e-8
+            assert acceleration<=(2.4 if index<2 else 4*.65*g.robot.motion.limit_scale)+1e-8
+            first,last=request.trajectory.points
+            old_acc=[.975]*6
+            if index<2:old_acc[3]=old_acc[5]=1.5
+            old=path_points(list(first.positions),[list(last.positions)],.6 if index<2 else .48,
+                            1.,old_acc,time_scale=1. if index<2 else .5)
+            assert last.time_from_start.sec+last.time_from_start.nanosec*1e-9<old[-1][0]*.85
+            if index==2:
+                baseline=path_points(poses[1],[g.lift],.6,1.,[.65*g.robot.motion.limit_scale]*6)
+                for point,(at,target) in zip(request.trajectory.points,baseline):
+                    assert point.time_from_start.sec+point.time_from_start.nanosec*1e-9==pytest.approx(at*.5,abs=1e-9)
+                    assert list(point.positions)==target
+        assert not g.robot.motion.path_inspection and g.robot.motion.path_time_scale==1.
         assert not r.impedance_goals and not r.direct_commands
         assert r.position==g.lift and r.position[3]==0.
         assert observed(r.list(None,type('R',(),{})()).controller)=='damping'
@@ -32,6 +68,7 @@ def test_ros_reset_j3_pull_lift_then_verified_damping():
         assert list(r.requests[-1].trajectory.points[-1].positions)==g.lift
         g.command('reset');until(e,lambda:g.state=='idle',timeout=8.)
         assert r.position==g.home and g.robot.modes.mode=='position'
+        assert .24<peak_motion(r.requests[-1])[0]<=.36+1e-8
 
 
 def test_ros_j3_torque_trigger_and_loss_of_feedback_blocks_actions():

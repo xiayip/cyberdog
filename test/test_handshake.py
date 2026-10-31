@@ -64,7 +64,7 @@ def test_stop_during_inspection_cancels_remaining_moves_and_damping(phase):
 
 
 def test_mock_damping_motion_commands_point_seven_once_and_keeps_damping():
-    with graph() as ([g],e):
+    with graph(parameters=['handshake_gripper_enabled:=true']) as ([g],e):
         reset(g,e);g.robot.mock_pose[2]=.05
         until(e,lambda:g.phase=='handshake')
         until(e,lambda:g.damping_movement.armed)
@@ -90,17 +90,25 @@ class FakeGripper(Node):
         self.action.destroy();return super().destroy_node()
 
 
-def test_real_ros_damping_movement_sends_exact_point_seven_to_gripper_action():
-    with graph((Cyberdog,FakeGameRobot,FakeGripper),PARAMS+['gripper_enabled:=true'],executor) as ([g,r,gripper],e):
+@pytest.mark.parametrize('enabled',[False,True])
+def test_real_ros_damping_auto_grip_is_disabled_by_default_and_can_be_reenabled(enabled):
+    params=PARAMS+['gripper_enabled:=true']+(['handshake_gripper_enabled:=true'] if enabled else [])
+    with graph((Cyberdog,FakeGameRobot,FakeGripper),params,executor) as ([g,r,gripper],e):
         g.command('reset');until(e,lambda:g.state=='idle',timeout=8.)
         r.position[2]=.06;until(e,lambda:g.phase=='handshake',timeout=14.)
-        until(e,lambda:g.damping_movement.armed)
+        if enabled:until(e,lambda:g.damping_movement.armed)
+        else:spin(e,.8)
         assert not gripper.requests
         requests=len(r.requests);switches=len(r.switch_requests)
         r.position[1]+=.06
-        until(e,lambda:bool(gripper.requests) and not g.robot.grip_busy)
-        assert len(gripper.requests)==1
-        assert list(gripper.requests[0].command.position)==[.7]
+        if enabled:
+            until(e,lambda:bool(gripper.requests) and not g.robot.grip_busy)
+            assert len(gripper.requests)==1
+            assert list(gripper.requests[0].command.position)==[.7]
+        else:
+            spin(e,.5)
+            assert not gripper.requests and not g.handshake_grip_sent and not g.damping_movement.armed
+            assert '自动闭爪已关闭' in g.message
         assert g.robot.modes.mode=='damping' and len(r.switch_requests)==switches
         assert len(r.requests)==requests and not r.direct_commands
 

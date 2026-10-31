@@ -7,6 +7,7 @@ import pytest
 
 from cyberdog.behavior import Cyberdog
 from cyberdog.senses import Senses
+from cyberdog.table_scene import table_box
 from test_behavior import graph, until, spin
 
 
@@ -19,8 +20,8 @@ def lock_target(game):
     return seq
 
 
-@pytest.mark.parametrize('lost_phase',['grasp_settling','grasp_approach','grasp_pregrasp','grasp_grasp'])
-def test_loss_after_lock_completes_one_attempt_including_close_and_lift(lost_phase):
+@pytest.mark.parametrize('lost_phase',['grasp_settling','grasp_approach'])
+def test_loss_after_lock_completes_one_attempt_including_close_and_direct_place(lost_phase):
     with graph((Cyberdog,Senses),['mock_ball_visible:=true','ball_still_sec:=0.5']) as ([g,s],e):
         original=g.set_state;stages=[];closed=[]
         grip=g.robot.grip
@@ -38,8 +39,8 @@ def test_loss_after_lock_completes_one_attempt_including_close_and_lift(lost_pha
                 assert g.ball_sequence.status()['using_frozen_target']
         g.set_state=state
         g.command('reset');until(e,lambda:g.phase=='complete',timeout=6.)
-        assert closed==['grasp_closing'] and 'grasp_lift' in stages
-        assert g.ball_sequence.attempts==1 and g.robot.grip_closed
+        assert closed==['grasp_closing'] and 'grasp_place' in stages and 'grasp_lift' not in stages
+        assert g.ball_sequence.attempts==1 and not g.robot.grip_closed
         assert 'grasp_retry_wait' not in stages
 
 
@@ -84,7 +85,7 @@ def test_three_attempts_reacquire_with_new_dwell_then_complete_or_stop(eventual_
         assert all(start-track>=.5 for start,track in zip(starts,tracking_at))
         assert g.ball_sequence.retry_at is None
         if eventual_success:
-            assert g.phase=='complete' and g.robot.grip_closed
+            assert g.phase=='complete' and not g.robot.grip_closed
         else:
             assert '3/3' in g.message and not g.robot.grip_closed
             spin(e,.4);assert attempts==[1,2,3]
@@ -92,7 +93,7 @@ def test_three_attempts_reacquire_with_new_dwell_then_complete_or_stop(eventual_
 
 
 def test_explicit_movement_survives_next_missing_sample_and_prevents_close():
-    with graph() as ([g],e):
+    with graph(parameters=['grasp_blind_after_lock:=false']) as ([g],e):
         seq=lock_target(g)
         seq.waypoints=[dict(stage='grasp')];seq.index=0
         seq.accept(dict(center=[.33,0.,.1],radius=.025),g.get_clock().now().nanoseconds*1e-9)
@@ -159,7 +160,7 @@ def test_real_scene_branch_plans_from_frozen_center_and_radius_after_loss(monkey
         g.robot.mock=False;g.robot.fresh=lambda:True
         seq.feedback=([0.]*6,0.);seq.feedback_at=time.monotonic()
         seq.phase='scene';seq.future=Future()
-        obj=SimpleNamespace(id=seq.table_id,primitives=[object()],meshes=[])
+        obj=table_box([0.,0.,0.],[.1,-.6],[.4,-.1],seq.table_id)
         seq.future.set_result(SimpleNamespace(scene=SimpleNamespace(world=SimpleNamespace(collision_objects=[obj]))))
         tr=TransformStamped();tr.transform.translation.x=.3;tr.transform.rotation.w=1.
         monkeypatch.setattr(seq.buffer,'lookup_transform',lambda *a:tr)

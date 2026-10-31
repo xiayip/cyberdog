@@ -27,12 +27,12 @@ def test_fast_profile_brakes_on_reversal_dropout_and_near_edges():
         q=[0.]*6;v=[0.]*6
         lo=[0.,0.,0.,-.25,-.35,0.];hi=[0.,0.,0.,.25,.35,0.]
         for i in range(900):
-            speed=.9 if i<250 else -.9 if i<500 else 0.
+            speed=1.2 if i<250 else -1.2 if i<500 else 0.
             target=q[:]
             for axis in (3,4):target[axis]+=speed*dt
             old=v[:]
-            q,v=tracking_step(q,v,target,dt,.9,1.5,lo,hi)
+            q,v=tracking_step(q,v,target,dt,1.2,2.4,lo,hi)
             assert all(a-1e-9<=x<=b+1e-9 for x,a,b in zip(q,lo,hi))
-            assert max(abs(x) for x in v)<=.9+1e-9
-            assert max(abs(a-b)/dt for a,b in zip(v,old))<=1.5+1e-8
+            assert max(abs(x) for x in v)<=1.2+1e-9
+            assert max(abs(a-b)/dt for a,b in zip(v,old))<=2.4+1e-8
         assert max(abs(x) for x in v)<1e-9

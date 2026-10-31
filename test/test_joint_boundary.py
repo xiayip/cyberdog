@@ -47,7 +47,7 @@ def test_inspection_absorbs_zero_noise_but_targets_keep_strict_limits():
     with pytest.raises(ValueError):inspection_poses([0.,0.,0.,1.32,0.,0.],.250383,[.25])
 
 
-def preflight(measured, reference, factory=None):
+def preflight(measured, reference, factory=None, *, inspection=False, time_scale=1., bow=False):
     """Run the actual async submission callback with a newly arrived sample."""
     m=Motion.__new__(Motion)
     sent=[];outcomes=[]
@@ -57,6 +57,9 @@ def preflight(measured, reference, factory=None):
     m.pose=measured;m.reference_pose=reference
     m.path_factory=factory or (lambda anchor:path_points(anchor,[[-1.5707,0.,.06,.25,0.,0.]]))
     m.limit_scale=1.;m.timeout=12.
+    m.path_inspection=inspection;m.inspection_acceleration=1.5
+    m.path_time_scale=time_scale
+    m.path_bow=bow
     m.report=lambda ok,reason:outcomes.append((ok,reason))
     def send(goal):
         sent.append(goal)
@@ -104,10 +107,10 @@ def test_ros_zero_feedback_noise_completes_wrist_head_and_damping_sequence():
         r.position[2]=.06
         until(e,lambda:g.phase=='handshake',timeout=14.)
         goals=r.requests[before:]
-        assert len(goals)==4
+        assert len(goals)==3
         targets=[list(goal.trajectory.points[-1].positions) for goal in goals]
-        assert targets[0]==[-1.5707,0.,.06,.25,0.,0.]
-        assert [q[5] for q in targets[:3]]==[0.,.25,-.25]
+        assert targets[0]==[-1.5707,0.,.06,.40,0.,0.]
+        assert [q[5] for q in targets[:2]]==[0.,.25]
         assert targets[-1]==g.lift and g.robot.modes.mode=='damping'
         assert not r.impedance_goals and not r.direct_commands
         for goal in r.requests:
@@ -120,3 +123,16 @@ def test_robot_move_never_accepts_out_of_limit_targets_even_with_valid_noisy_sta
         g.robot.mock_pose=[-1.5707,-.000383,.06,0.,0.,0.]
         assert not g.robot.move([g.robot.current],lambda *args:None)[0]
         assert not g.robot.busy
+
+
+@pytest.mark.parametrize('inspection,joint,acceleration,accepted',[
+    (True,3,1.2,True),(True,5,1.2,True),(False,3,1.2,False),
+    (True,1,1.2,False),(True,3,1.6,False)])
+def test_inspection_acceleration_override_is_limited_to_j4_j6_and_cleared(inspection,joint,acceleration,accepted):
+    q=[0.,.6,.8,0.,0.,0.]
+    a=[0.]*6;a[joint]=acceleration
+    factory=lambda anchor:[(.2,anchor,[0.]*6,[0.]*6),(1.5,q,[0.]*6,a)]
+    m,sent,outcomes=preflight(q,q,factory,inspection=inspection)
+    assert bool(sent)==accepted
+    if accepted:m.finish(True,'done')
+    assert not m.path_inspection
