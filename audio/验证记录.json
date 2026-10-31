@@ -1,163 +1,278 @@
 [
   {
     "event": "A1",
-    "seconds": 0.37,
+    "seconds": 0.35,
     "peak_dbfs": -6.0,
     "max_adjacent_centroid_delta_hz": 0,
-    "file": "A1_开机招呼.wav"
+    "file": "A1_开机招呼.wav",
+    "sha256": "d54e189d6a21cd1f5beba8e0a4e135cf8c4ba4ad4e3bf172552eaaba55dc24be",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -90.31,
+    "external_bark": true,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "A2",
     "seconds": 0.8,
     "peak_dbfs": -6.0,
     "max_adjacent_centroid_delta_hz": 185,
-    "file": "A2_回到待机.wav"
+    "file": "A2_回到待机.wav",
+    "sha256": "1c05f65bae59e3f45b33c3384ecf912f45e2bca79b605f707db7f78bbd1b7909",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -59.18,
+    "external_bark": false,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "A3",
     "seconds": 0.39,
     "peak_dbfs": -15.89,
     "max_adjacent_centroid_delta_hz": 0,
-    "file": "A3_静静待机.wav"
+    "file": "A3_静静待机.wav",
+    "sha256": "eaf5b9fb18f28bbd8d310e1ea54cb7a5259d2bccc86dcb402b6a35d868b1a493",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -65.7,
+    "external_bark": false,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "B1",
     "seconds": 1.01,
     "peak_dbfs": -6.0,
     "max_adjacent_centroid_delta_hz": 103,
-    "file": "B1_触碰回应.wav"
+    "file": "B1_触碰回应.wav",
+    "sha256": "fada3b6fe6b900beff5afd31c065eae0466c9c1a8437b07a451ff239dbe45af0",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -50.48,
+    "external_bark": false,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "B2",
     "seconds": 0.92,
     "peak_dbfs": -6.0,
     "max_adjacent_centroid_delta_hz": 112,
-    "file": "B2_歪头打量.wav"
+    "file": "B2_歪头打量.wav",
+    "sha256": "8b961210c180f3e5f96bc5fdda734a58fbbdf9fa2de05ff0f2ad0226ac74d3e1",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -53.04,
+    "external_bark": false,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "B3",
     "seconds": 0.805,
     "peak_dbfs": -11.19,
     "max_adjacent_centroid_delta_hz": 382,
-    "file": "B3_抬腕起身.wav"
+    "file": "B3_抬腕起身.wav",
+    "sha256": "50e7683ef7b19b4d0b98d5eb0c2b32f44a715b0ca847c4a8cbaffb3b1ae19ea7",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -51.62,
+    "external_bark": false,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "B4",
     "seconds": 0.795,
     "peak_dbfs": -6.0,
     "max_adjacent_centroid_delta_hz": 79,
-    "file": "B4_握手撒娇.wav"
+    "file": "B4_握手撒娇.wav",
+    "sha256": "7e56b579ed072d554f94e44efb03413395b349acdfdd6abb2de0a138a5a9f1c0",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -50.22,
+    "external_bark": false,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "B5",
     "seconds": 1.0,
     "peak_dbfs": -6.0,
     "max_adjacent_centroid_delta_hz": 596,
-    "file": "B5_握住手了.wav"
+    "file": "B5_握住手了.wav",
+    "sha256": "b015dcc063438c75140beda4e6055acb107a1e7140416f142fc61eaf9ce984b2",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -72.25,
+    "external_bark": false,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "C1",
     "seconds": 0.805,
     "peak_dbfs": -6.0,
     "max_adjacent_centroid_delta_hz": 486,
-    "file": "C1_发现毛线球.wav"
+    "file": "C1_发现毛线球.wav",
+    "sha256": "a9d3780e3ee338931343bca4757dd81414f644587166359b1ce165b4fbad38d4",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -53.04,
+    "external_bark": false,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "C2",
     "seconds": 1.88,
     "peak_dbfs": -11.19,
     "max_adjacent_centroid_delta_hz": 561,
-    "file": "C2_视线追球.wav"
+    "file": "C2_视线追球.wav",
+    "sha256": "d3f00f14de8e975ce0895c5e5788037ba308250e130546695b58ccc1a232b2d6",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -54.75,
+    "external_bark": false,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "C3",
     "seconds": 1.235,
     "peak_dbfs": -6.0,
     "max_adjacent_centroid_delta_hz": 374,
-    "file": "C3_找回目标.wav"
+    "file": "C3_找回目标.wav",
+    "sha256": "98f86b557f27e2f32abccf11372521706bf199ea161b5c9c8d354cedc98c0bf6",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -53.04,
+    "external_bark": false,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "C5",
     "seconds": 0.35,
     "peak_dbfs": -6.0,
     "max_adjacent_centroid_delta_hz": 0,
-    "file": "C5_闭爪发力.wav"
+    "file": "C5_闭爪发力.wav",
+    "sha256": "914fb0caf5247df1267d1be42c9736c8daded244f53a59371e7cc96e7360040a",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -35.49,
+    "external_bark": false,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "C6",
-    "seconds": 1.515,
-    "peak_dbfs": -4.78,
-    "max_adjacent_centroid_delta_hz": 382,
-    "file": "C6_抓球成功_开心.wav"
+    "seconds": 1.33,
+    "peak_dbfs": -6.0,
+    "max_adjacent_centroid_delta_hz": 0,
+    "file": "C6_抓球成功_开心.wav",
+    "sha256": "45b5622ad0e47fa78c533a6193bc0f8aad591494d05a8db8ff20c456b7ff700b",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -90.31,
+    "external_bark": true,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "D1",
     "seconds": 0.97,
     "peak_dbfs": -6.0,
     "max_adjacent_centroid_delta_hz": 103,
-    "file": "D1_首次失败_鼓劲.wav"
+    "file": "D1_首次失败_鼓劲.wav",
+    "sha256": "e94a38111bee68491e7d177d787f7e5f5d8424b82287dceec95f741a59833e12",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -50.48,
+    "external_bark": false,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "D2",
     "seconds": 1.08,
     "peak_dbfs": -6.0,
     "max_adjacent_centroid_delta_hz": 435,
-    "file": "D2_再次失败_着急.wav"
+    "file": "D2_再次失败_着急.wav",
+    "sha256": "81dc4409bf5345dd5c9936c6d1d4bcf927fdc98ac75edc163318a7acdf4da37f",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -46.96,
+    "external_bark": false,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "D3",
     "seconds": 1.82,
     "peak_dbfs": -6.0,
     "max_adjacent_centroid_delta_hz": 202,
-    "file": "D3_抓取失败_委屈.wav"
+    "file": "D3_抓取失败_委屈.wav",
+    "sha256": "a19db65b1f5bca1a2af23cbda7eb8e44f8a7b3a51c5cde5c633ebfa38c04b329",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -48.95,
+    "external_bark": false,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "D4",
     "seconds": 0.37,
     "peak_dbfs": -6.0,
     "max_adjacent_centroid_delta_hz": 0,
-    "file": "D4_重新振作.wav"
+    "file": "D4_重新振作.wav",
+    "sha256": "86b92c7d25c78a0ebf9289a6a51975206ebe8ec842fb7d52daa00fbbfd0135d4",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -90.31,
+    "external_bark": false,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "E1",
     "seconds": 0.28,
     "peak_dbfs": -6.0,
     "max_adjacent_centroid_delta_hz": 0,
-    "file": "E1_等待复位.wav"
+    "file": "E1_等待复位.wav",
+    "sha256": "1cb155d5f87ce335fd49de35820f2a637670f7234b1638dbf43ae20ba4b382c2",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -55.35,
+    "external_bark": false,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "E2",
     "seconds": 0.76,
     "peak_dbfs": -6.0,
     "max_adjacent_centroid_delta_hz": 185,
-    "file": "E2_回家趴好.wav"
+    "file": "E2_回家趴好.wav",
+    "sha256": "ddf4a9c647c29dffdba8d421beead31cbbee4307bdd1a7412eb8f56f5084810d",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -59.18,
+    "external_bark": false,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "E4",
     "seconds": 0.94,
     "peak_dbfs": -6.0,
     "max_adjacent_centroid_delta_hz": 596,
-    "file": "E4_新一轮开始.wav"
+    "file": "E4_新一轮开始.wav",
+    "sha256": "df01e1b29e1293e6cc2008458637120e7a00f26b8b881c136f12139fea8dd7c4",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -72.25,
+    "external_bark": false,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "W1",
-    "seconds": 0.37,
+    "seconds": 0.35,
     "peak_dbfs": -6.0,
     "max_adjacent_centroid_delta_hz": 0,
-    "file": "W1_短暂离开_精神唤醒.wav"
+    "file": "W1_短暂离开_精神唤醒.wav",
+    "sha256": "d54e189d6a21cd1f5beba8e0a4e135cf8c4ba4ad4e3bf172552eaaba55dc24be",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -90.31,
+    "external_bark": true,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "W2",
     "seconds": 1.91,
     "peak_dbfs": -6.0,
     "max_adjacent_centroid_delta_hz": 310,
-    "file": "W2_离开稍久_困倦唤醒.wav"
+    "file": "W2_离开稍久_困倦唤醒.wav",
+    "sha256": "17fafd99fea7b565e4800d84eea952498d7569789e492e312f71a4a4d3f25867",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -55.66,
+    "external_bark": false,
+    "listening_acceptance": "pending_user_review"
   },
   {
     "event": "W3",
     "seconds": 2.355,
     "peak_dbfs": -6.0,
     "max_adjacent_centroid_delta_hz": 481,
-    "file": "W3_离开很久_撒娇唤醒.wav"
+    "file": "W3_离开很久_撒娇唤醒.wav",
+    "sha256": "f3f6f61d47314fbc3fb8050115f84d7b173e854107d384e8ba93f04fe2d59a89",
+    "pcm_roundtrip": true,
+    "edge_1ms_peak_dbfs": -50.4,
+    "external_bark": false,
+    "listening_acceptance": "pending_user_review"
   }
 ]
