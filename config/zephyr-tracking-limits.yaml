@@ -1,0 +1,7 @@
+# User-authorized 1.5x of the measured 2026-10-31 reference limits.
+# Read-only at initialization: load with the original/runtime-snapshot config
+# while the position chain holds the arm. Does not change torque/position guards.
+zephyr_arm_impedance_controller:
+  ros__parameters:
+    reference.position_rate_limit: [1.5, 0.9, 0.9, 1.5, 1.5, 1.5]
+    reference.velocity_limit: [1.5, 1.5, 1.5, 2.25, 2.25, 2.25]

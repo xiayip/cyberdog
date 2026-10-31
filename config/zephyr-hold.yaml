@@ -1,0 +1,8 @@
+# Armie local impedance holding gains for OmniPicker + flange + Gemini 305.
+# Apply after the original Zephyr bringup starts its position chain, while
+# zephyr_arm_impedance_controller is inactive, before Armie /ready.
+# Keeps the original gravity model, damping-mode parameters, torque caps,
+# soft limits and trajectory guard. Not a replacement controllers.yaml.
+zephyr_arm_impedance_controller:
+  ros__parameters:
+    stiffness: [20.0, 45.0, 65.0, 16.0, 16.0, 20.0]

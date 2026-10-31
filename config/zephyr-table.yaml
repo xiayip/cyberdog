@@ -1,0 +1,10 @@
+# Table surface measured from the wrist depth camera on 2026-10-31, in base_link
+# (dominant horizontal patch, plane z = a*x + b*y + c; p90 residual 4.5 mm).
+# Valid only while the arm base and table stay where they were; re-measure after
+# moving either. Used by `ros2 run cyberdog table_scene` to add cyberdog_observed_table.
+cyberdog_table_scene:
+  ros__parameters:
+    object_id: cyberdog_observed_table
+    plane_z_equals_ax_by_c: [0.023508207260724053, -0.009321865689088018, 0.003044323054376846]
+    xy_min: [0.05558204049876611, -0.6568967385542418]
+    xy_max: [0.3985576776722882, -0.0056047769641885264]

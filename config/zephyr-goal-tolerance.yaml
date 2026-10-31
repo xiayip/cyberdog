@@ -1,0 +1,7 @@
+# Joint2 holds ~1.4 Nm of residual gravity/friction torque at Kp=45, so it settles
+# at ~0.031 rad and the impedance JTC (goal 0.03) aborts after goal_time even
+# though the arm is stationary. 0.045 matches cyberdog's settled_position_tolerance.
+# Read at JTC initialization, like the other Armie overlays.
+zephyr_arm_impedance_trajectory_controller:
+  ros__parameters:
+    constraints.joint2.goal: 0.045

@@ -1,0 +1,23 @@
+{
+  "base_model": "yoloe-26s-seg.pt",
+  "upstream": "https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26s-seg.pt",
+  "ultralytics": "8.4.176",
+  "sha256": "e0978d8e1a80fa67778e7d8f43261fc0de8d7a7da3b4e3dcd171b4be05e39a4a",
+  "prompt": {
+    "type": "visual",
+    "source": "2026-10-31 recorded wrist-camera frame 000001",
+    "bbox_xyxy": [
+      395,
+      131,
+      480,
+      219
+    ],
+    "source_size": [
+      848,
+      530
+    ]
+  },
+  "class_id": 0,
+  "confidence": 0.7,
+  "license": "Ultralytics AGPL-3.0; see https://www.ultralytics.com/license"
+}

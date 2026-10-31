@@ -1,0 +1,70 @@
+# Angles in radians. Inspection precedes the final JTC handshake pose.
+cyberdog:
+  ros__parameters:
+    motion_limit_scale: 1.5
+    settled_position_tolerance:
+    - 0.03
+    - 0.045
+    - 0.04
+    - 0.04
+    - 0.03
+    - 0.03
+    mock_step_sec: 0.3
+    ball_velocity_feedforward: true
+    ball_tracking_speed: 0.9
+    ball_tracking_acceleration: 1.5
+    ball_tracking_yaw_range: 1.2
+    ball_tracking_pitch_range: 1.0
+    gripper_action: /zephyr_arm_gripper_controller/gripper_cmd
+    gripper_joint: omni_picker_finger_joint
+    trajectory_action: /zephyr_arm_trajectory_controller/follow_joint_trajectory
+    controller_manager: /controller_manager
+    required_guard_node: ''
+    controller_prefix: zephyr_arm
+    required_controllers:
+    - zephyr_arm_mit_controller
+    - zephyr_arm_position_adapter
+    - zephyr_arm_trajectory_controller
+    home_pose:
+    - -1.5707
+    - 0.0
+    - 0.0
+    - 0.0
+    - 0.0
+    - 0.0
+    handshake_pose:
+    - -1.5707
+    - 0.6
+    - 0.8
+    - 0.0
+    - 0.0
+    - 0.0
+    handshake_wrist_delta: 0.25
+    handshake_head_offsets: [0.25, -0.25]
+    handshake_head_hold_sec: 0.35
+    damping_movement_threshold: 0.04
+    damping_movement_dwell_sec: 0.15
+    damping_movement_settle_sec: 0.5
+    handshake_gripper_position: 0.7
+    pose_speed: 0.24
+    touch_signal: either
+    j3_position_threshold: 0.03
+    j3_torque_threshold: 1.0
+    touch_dwell_sec: 0.25
+    ball_still_sec: 3.0
+    ball_full_sequence: true
+    grasp_continue_on_loss: true
+    grasp_max_attempts: 3
+    grasp_retry_delay_sec: 1.0
+    grasp_attempt_timeout_sec: 120.0
+    grasp_enabled: true
+    gripper_enabled: true
+    gripper_open_only: false
+    allow_nominal_tcp_trial: true
+    grasp_table_object: cyberdog_observed_table
+    ball_tracking_gain: 2.0
+cyberdog_senses:
+  ros__parameters:
+    ball_detector: yoloe
+    image_topic: /camera/color/image_raw/compressed
+    mock_ball_visible: false
