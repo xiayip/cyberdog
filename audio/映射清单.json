@@ -1,0 +1,1057 @@
+{
+  "sections": [
+    {
+      "title": "A、待机与唤醒",
+      "events": [
+        "A1",
+        "A2",
+        "A3",
+        "A4"
+      ]
+    },
+    {
+      "title": "B、触碰握手（J3 触发，阻尼模式）",
+      "events": [
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5"
+      ]
+    },
+    {
+      "title": "C、毛线球：发现 → 跟随 → 抓取",
+      "events": [
+        "C1",
+        "C2",
+        "C3",
+        "C4",
+        "C5",
+        "C6"
+      ]
+    },
+    {
+      "title": "D、抓取失败与重试（grasp_max_attempts=3）",
+      "events": [
+        "D1",
+        "D2",
+        "D3",
+        "D4"
+      ]
+    },
+    {
+      "title": "E、结束、复位与异常",
+      "events": [
+        "E1",
+        "E2",
+        "E3",
+        "E4"
+      ]
+    },
+    {
+      "title": "W、专项：一段时间没回应，再触碰唤醒的情绪梯度",
+      "events": [
+        "W1",
+        "W2",
+        "W3"
+      ]
+    }
+  ],
+  "byId": {
+    "A1": {
+      "code": "paused / startup",
+      "scene": "开机自检完成",
+      "emo": "打招呼＋精神",
+      "design": "一声短促的奶狗发声，作为开机招呼；不使用此前口哨感片段。",
+      "mode": "sound",
+      "selected_variant": 0,
+      "file": "定稿音频/A1_开机招呼.wav",
+      "filename": "A1_开机招呼.wav",
+      "duration": 0.37,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/bark.wav",
+          "label": "汪",
+          "gain": 1.0,
+          "gap": 0,
+          "source": "728026.wav",
+          "region": [
+            0.07,
+            0.3
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "汪",
+      "sha256": "86b92c7d25c78a0ebf9289a6a51975206ebe8ec842fb7d52daa00fbbfd0135d4"
+    },
+    "A2": {
+      "code": "idle / holding（刚进入）",
+      "scene": "回到待机",
+      "emo": "满足／放松",
+      "design": "轻短的满足哼，接柔和鼻音，回到放松状态。",
+      "mode": "sound",
+      "selected_variant": 1,
+      "file": "定稿音频/A2_回到待机.wav",
+      "filename": "A2_回到待机.wav",
+      "duration": 0.8,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/happy_1.wav",
+          "label": "开心",
+          "gain": 1.0,
+          "gap": 0.18,
+          "source": "728030.wav",
+          "region": [
+            0.59,
+            1.09
+          ],
+          "from_override": null,
+          "to_override": 0.82
+        },
+        {
+          "clip": "kits/milk/clips/pet_1.wav",
+          "label": "被摸",
+          "gain": 1.0,
+          "gap": 0,
+          "source": "728022.wav",
+          "region": [
+            3.81,
+            4.05
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "开心 → 被摸",
+      "sha256": "1c05f65bae59e3f45b33c3384ecf912f45e2bca79b605f707db7f78bbd1b7909"
+    },
+    "A3": {
+      "code": "idle / holding（持续）",
+      "scene": "静静待机",
+      "emo": "安静",
+      "design": "一声极轻的低哼；实际接入时每 20–40 秒至多触发一次。",
+      "mode": "sound",
+      "selected_variant": 0,
+      "file": "定稿音频/A3_静静待机.wav",
+      "filename": "A3_静静待机.wav",
+      "duration": 0.39,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/bored_1.wav",
+          "label": "无聊",
+          "gain": 0.32,
+          "gap": 0,
+          "source": "728030.wav",
+          "region": [
+            2.9,
+            3.22
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "无聊",
+      "sha256": "eaf5b9fb18f28bbd8d310e1ea54cb7a5259d2bccc86dcb402b6a35d868b1a493"
+    },
+    "A4": {
+      "code": "idle 超时无互动",
+      "scene": "见「唤醒梯度」一节",
+      "emo": "—",
+      "design": "按离开时长分别进入 W1、W2、W3，不额外叠加声音。",
+      "mode": "route",
+      "selected_variant": null,
+      "file": null,
+      "filename": null,
+      "duration": 0,
+      "steps": [],
+      "sequence": "静音"
+    },
+    "B1": {
+      "code": "transition / handshake_start",
+      "scene": "J3 被触碰",
+      "emo": "惊→喜",
+      "design": "短促提醒后接一声回应，配合触碰动作。",
+      "mode": "sound",
+      "selected_variant": 0,
+      "file": "定稿音频/B1_触碰回应.wav",
+      "filename": "B1_触碰回应.wav",
+      "duration": 1.01,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/alert_2.wav",
+          "label": "警觉",
+          "gain": 1.0,
+          "gap": 0.16,
+          "source": "728026.wav",
+          "region": [
+            3.25,
+            3.61
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/bark.wav",
+          "label": "汪",
+          "gain": 1.0,
+          "gap": 0,
+          "source": "728026.wav",
+          "region": [
+            0.07,
+            0.3
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "警觉 → 汪",
+      "sha256": "fada3b6fe6b900beff5afd31c065eae0466c9c1a8437b07a451ff239dbe45af0"
+    },
+    "B2": {
+      "code": "transition / head_tilt · head_looking",
+      "scene": "歪头打量",
+      "emo": "好奇／疑惑",
+      "design": "选择音区接近的好奇和疑问两声，避免低沉音突然接亮音。",
+      "mode": "sound",
+      "selected_variant": 1,
+      "file": "定稿音频/B2_歪头打量.wav",
+      "filename": "B2_歪头打量.wav",
+      "duration": 0.92,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/curious_2.wav",
+          "label": "好奇",
+          "gain": 1.0,
+          "gap": 0.16,
+          "source": "728026.wav",
+          "region": [
+            1.56,
+            1.82
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/question_2.wav",
+          "label": "疑问",
+          "gain": 1.0,
+          "gap": 0,
+          "source": "728022.wav",
+          "region": [
+            0.67,
+            0.94
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "好奇 → 疑问",
+      "sha256": "8b961210c180f3e5f96bc5fdda734a58fbbdf9fa2de05ff0f2ad0226ac74d3e1"
+    },
+    "B3": {
+      "code": "transition / wrist_lift · lifting",
+      "scene": "抬腕起身",
+      "emo": "兴奋配合",
+      "design": "两声轻快的小哼，以较低音量配合抬腕。",
+      "mode": "sound",
+      "selected_variant": 0,
+      "file": "定稿音频/B3_抬腕起身.wav",
+      "filename": "B3_抬腕起身.wav",
+      "duration": 0.805,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/excited_1.wav",
+          "label": "兴奋",
+          "gain": 0.55,
+          "gap": 0.12,
+          "source": "728026.wav",
+          "region": [
+            1.09,
+            1.3
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/excited_2.wav",
+          "label": "兴奋",
+          "gain": 0.55,
+          "gap": 0,
+          "source": "728030.wav",
+          "region": [
+            1.15,
+            1.43
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "兴奋 → 兴奋",
+      "sha256": "50e7683ef7b19b4d0b98d5eb0c2b32f44a715b0ca847c4a8cbaffb3b1ae19ea7"
+    },
+    "B4": {
+      "code": "active / handshake（掰动中）",
+      "scene": "阻尼握手晃动",
+      "emo": "享受撒娇",
+      "design": "细短撒娇音接柔和鼻音，随握手动作偶尔触发。",
+      "mode": "sound",
+      "selected_variant": 1,
+      "file": "定稿音频/B4_握手撒娇.wav",
+      "filename": "B4_握手撒娇.wav",
+      "duration": 0.795,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/needy_2.wav",
+          "label": "撒娇",
+          "gain": 1.0,
+          "gap": 0.1,
+          "source": "728030.wav",
+          "region": [
+            0.24,
+            0.55
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/pet_1.wav",
+          "label": "被摸",
+          "gain": 1.0,
+          "gap": 0,
+          "source": "728022.wav",
+          "region": [
+            3.81,
+            4.05
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "撒娇 → 被摸",
+      "sha256": "7e56b579ed072d554f94e44efb03413395b349acdfdd6abb2de0a138a5a9f1c0"
+    },
+    "B5": {
+      "code": "handshake_tick → grip",
+      "scene": "握住手了",
+      "emo": "得意／亲昵",
+      "design": "短叫后接柔和开心哼，表达握住手后的亲昵。",
+      "mode": "sound",
+      "selected_variant": 1,
+      "file": "定稿音频/B5_握住手了.wav",
+      "filename": "B5_握住手了.wav",
+      "duration": 1.0,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/bark.wav",
+          "label": "汪",
+          "gain": 1.0,
+          "gap": 0.2,
+          "source": "728026.wav",
+          "region": [
+            0.07,
+            0.3
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/happy_2.wav",
+          "label": "开心",
+          "gain": 0.75,
+          "gap": 0,
+          "source": "728026.wav",
+          "region": [
+            0.5,
+            0.81
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "汪 → 开心",
+      "sha256": "b015dcc063438c75140beda4e6055acb107a1e7140416f142fc61eaf9ce984b2"
+    },
+    "C1": {
+      "code": "transition / ball_entering",
+      "scene": "球入视野自动切换追踪",
+      "emo": "惊喜＋好奇（最核心）",
+      "design": "疑问上扬后接短叫，表达发现球的惊喜。",
+      "mode": "sound",
+      "selected_variant": 0,
+      "file": "定稿音频/C1_发现毛线球.wav",
+      "filename": "C1_发现毛线球.wav",
+      "duration": 0.805,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/question_2.wav",
+          "label": "疑问",
+          "gain": 1.0,
+          "gap": 0.12,
+          "source": "728022.wav",
+          "region": [
+            0.67,
+            0.94
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/bark.wav",
+          "label": "汪",
+          "gain": 1.0,
+          "gap": 0,
+          "source": "728026.wav",
+          "region": [
+            0.07,
+            0.3
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "疑问 → 汪",
+      "sha256": "a9d3780e3ee338931343bca4757dd81414f644587166359b1ce165b4fbad38d4"
+    },
+    "C2": {
+      "code": "active / tracking",
+      "scene": "视线追球中",
+      "emo": "兴奋专注",
+      "design": "四声轻快小哼，整体降低音量，配合追球。",
+      "mode": "sound",
+      "selected_variant": 0,
+      "file": "定稿音频/C2_视线追球.wav",
+      "filename": "C2_视线追球.wav",
+      "duration": 1.88,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/excited_2.wav",
+          "label": "兴奋",
+          "gain": 0.55,
+          "gap": 0.1,
+          "source": "728030.wav",
+          "region": [
+            1.15,
+            1.43
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/curious_2.wav",
+          "label": "好奇",
+          "gain": 0.55,
+          "gap": 0.12,
+          "source": "728026.wav",
+          "region": [
+            1.56,
+            1.82
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/excited_1.wav",
+          "label": "兴奋",
+          "gain": 0.55,
+          "gap": 0.1,
+          "source": "728026.wav",
+          "region": [
+            1.09,
+            1.3
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/happy_2.wav",
+          "label": "开心",
+          "gain": 0.55,
+          "gap": 0,
+          "source": "728026.wav",
+          "region": [
+            0.5,
+            0.81
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "兴奋 → 好奇 → 兴奋 → 开心",
+      "sha256": "d3f00f14de8e975ce0895c5e5788037ba308250e130546695b58ccc1a232b2d6"
+    },
+    "C3": {
+      "code": "球短暂丢失又重现",
+      "scene": "找回目标",
+      "emo": "惊＋疑惑",
+      "design": "好奇音后留一点寻找的停顿，再短叫回应。",
+      "mode": "sound",
+      "selected_variant": 1,
+      "file": "定稿音频/C3_找回目标.wav",
+      "filename": "C3_找回目标.wav",
+      "duration": 1.235,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/curious_2.wav",
+          "label": "好奇",
+          "gain": 1.0,
+          "gap": 0.42,
+          "source": "728026.wav",
+          "region": [
+            1.56,
+            1.82
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/bark.wav",
+          "label": "汪",
+          "gain": 1.0,
+          "gap": 0,
+          "source": "728026.wav",
+          "region": [
+            0.07,
+            0.3
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "好奇 → 汪",
+      "sha256": "98f86b557f27e2f32abccf11372521706bf199ea161b5c9c8d354cedc98c0bf6"
+    },
+    "C4": {
+      "code": "active / grasp_settling",
+      "scene": "锁定球心、蓄势",
+      "emo": "犹豫／蓄力",
+      "design": "蓄势时保持静音，让闭爪与成功反馈更突出。",
+      "mode": "silent",
+      "selected_variant": 1,
+      "file": null,
+      "filename": null,
+      "duration": 0,
+      "steps": [],
+      "sequence": "静音"
+    },
+    "C5": {
+      "code": "active / grasp_closing",
+      "scene": "闭爪瞬间",
+      "emo": "用力",
+      "design": "闭爪瞬间一声短促的发力音。",
+      "mode": "sound",
+      "selected_variant": 0,
+      "file": "定稿音频/C5_闭爪发力.wav",
+      "filename": "C5_闭爪发力.wav",
+      "duration": 0.35,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/yip.wav",
+          "label": "唔",
+          "gain": 1.0,
+          "gap": 0,
+          "source": "728027.wav",
+          "region": [
+            11.21,
+            11.48
+          ],
+          "from_override": null,
+          "to_override": 11.32
+        }
+      ],
+      "sequence": "唔",
+      "sha256": "914fb0caf5247df1267d1be42c9736c8daded244f53a59371e7cc96e7360040a"
+    },
+    "C6": {
+      "code": "paused / complete（抓到了）",
+      "scene": "抓取动作结束保持",
+      "emo": "开心／兴奋庆祝",
+      "design": "抓到球立即兴奋起声，接一声开心回应，最后两声紧凑连叫、略增强力度，表达兴奋庆祝；保留原始奶音，不变调。",
+      "mode": "sound",
+      "selected_variant": 0,
+      "file": "定稿音频/C6_抓球成功_开心.wav",
+      "filename": "C6_抓球成功_开心.wav",
+      "duration": 1.515,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/excited_1.wav",
+          "label": "兴奋",
+          "gain": 0.95,
+          "gap": 0.02,
+          "source": "728026.wav",
+          "region": [
+            1.09,
+            1.3
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/happy_2.wav",
+          "label": "开心",
+          "gain": 1.0,
+          "gap": 0.015,
+          "source": "728026.wav",
+          "region": [
+            0.5,
+            0.81
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/excited_2.wav",
+          "label": "兴奋",
+          "gain": 1.08,
+          "gap": 0.005,
+          "source": "728030.wav",
+          "region": [
+            1.15,
+            1.43
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/excited_1.wav",
+          "label": "兴奋",
+          "gain": 1.15,
+          "gap": 0,
+          "source": "728026.wav",
+          "region": [
+            1.09,
+            1.3
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "兴奋 → 开心 → 兴奋 → 兴奋",
+      "sha256": "de55b6044366ae47d0f84d62e1448e29df541d96b6ff8400b0c77d98b47afc31"
+    },
+    "D1": {
+      "code": "grasp_retry_wait（第 1 次失败）",
+      "scene": "准备第 2 次",
+      "emo": "不服气",
+      "design": "短促提醒接鼓劲短叫，准备第二次尝试。",
+      "mode": "sound",
+      "selected_variant": 0,
+      "file": "定稿音频/D1_首次失败_鼓劲.wav",
+      "filename": "D1_首次失败_鼓劲.wav",
+      "duration": 0.97,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/alert_2.wav",
+          "label": "警觉",
+          "gain": 1.0,
+          "gap": 0.12,
+          "source": "728026.wav",
+          "region": [
+            3.25,
+            3.61
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/bark.wav",
+          "label": "汪",
+          "gain": 1.0,
+          "gap": 0,
+          "source": "728026.wav",
+          "region": [
+            0.07,
+            0.3
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "警觉 → 汪",
+      "sha256": "e94a38111bee68491e7d177d787f7e5f5d8424b82287dceec95f741a59833e12"
+    },
+    "D2": {
+      "code": "grasp_retry_wait（第 2 次失败）",
+      "scene": "准备第 3 次",
+      "emo": "着急＋自疑",
+      "design": "委屈音接疑问音，表达着急和不确定。",
+      "mode": "sound",
+      "selected_variant": 0,
+      "file": "定稿音频/D2_再次失败_着急.wav",
+      "filename": "D2_再次失败_着急.wav",
+      "duration": 1.08,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/sad_2.wav",
+          "label": "委屈",
+          "gain": 1.0,
+          "gap": 0.18,
+          "source": "728026.wav",
+          "region": [
+            2.1,
+            2.5
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/question_2.wav",
+          "label": "疑问",
+          "gain": 1.0,
+          "gap": 0,
+          "source": "728022.wav",
+          "region": [
+            0.67,
+            0.94
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "委屈 → 疑问",
+      "sha256": "81dc4409bf5345dd5c9936c6d1d4bcf927fdc98ac75edc163318a7acdf4da37f"
+    },
+    "D3": {
+      "code": "3 次用尽 → pause「请复位后重试」",
+      "scene": "彻底放弃",
+      "emo": "大委屈（失败也要可爱）",
+      "design": "较长的委屈音接低缓收尾，表达失败后的失落。",
+      "mode": "sound",
+      "selected_variant": 0,
+      "file": "定稿音频/D3_抓取失败_委屈.wav",
+      "filename": "D3_抓取失败_委屈.wav",
+      "duration": 1.82,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/sad_1.wav",
+          "label": "委屈",
+          "gain": 1.0,
+          "gap": 0.16,
+          "source": "728028.wav",
+          "region": [
+            2.92,
+            3.63
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/blue_2.wav",
+          "label": "难过",
+          "gain": 1.0,
+          "gap": 0,
+          "source": "728030.wav",
+          "region": [
+            4.13,
+            4.92
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "委屈 → 难过",
+      "sha256": "a19db65b1f5bca1a2af23cbda7eb8e44f8a7b3a51c5cde5c633ebfa38c04b329"
+    },
+    "D4": {
+      "code": "重试中锁定新目标",
+      "scene": "重新振作",
+      "emo": "复燃",
+      "design": "一声短促发声，配合重新锁定目标。",
+      "mode": "sound",
+      "selected_variant": 0,
+      "file": "定稿音频/D4_重新振作.wav",
+      "filename": "D4_重新振作.wav",
+      "duration": 0.37,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/bark.wav",
+          "label": "汪",
+          "gain": 1.0,
+          "gap": 0,
+          "source": "728026.wav",
+          "region": [
+            0.07,
+            0.3
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "汪",
+      "sha256": "86b92c7d25c78a0ebf9289a6a51975206ebe8ec842fb7d52daa00fbbfd0135d4"
+    },
+    "E1": {
+      "code": "resetting / waiting_stop",
+      "scene": "等待停止后复位",
+      "emo": "顺从",
+      "design": "轻柔鼻音回应等待复位。",
+      "mode": "sound",
+      "selected_variant": 0,
+      "file": "定稿音频/E1_等待复位.wav",
+      "filename": "E1_等待复位.wav",
+      "duration": 0.28,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/pet_2.wav",
+          "label": "被摸",
+          "gain": 1.0,
+          "gap": 0,
+          "source": "728030.wav",
+          "region": [
+            2.6,
+            2.81
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "被摸",
+      "sha256": "1cb155d5f87ce335fd49de35820f2a637670f7234b1638dbf43ae20ba4b382c2"
+    },
+    "E2": {
+      "code": "transition / settling → idle/holding",
+      "scene": "回家趴好",
+      "emo": "放松满足",
+      "design": "满足的小哼接柔和鼻音，配合趴好。",
+      "mode": "sound",
+      "selected_variant": 1,
+      "file": "定稿音频/E2_回家趴好.wav",
+      "filename": "E2_回家趴好.wav",
+      "duration": 0.76,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/happy_1.wav",
+          "label": "开心",
+          "gain": 1.0,
+          "gap": 0.14,
+          "source": "728030.wav",
+          "region": [
+            0.59,
+            1.09
+          ],
+          "from_override": null,
+          "to_override": 0.82
+        },
+        {
+          "clip": "kits/milk/clips/pet_1.wav",
+          "label": "被摸",
+          "gain": 1.0,
+          "gap": 0,
+          "source": "728022.wav",
+          "region": [
+            3.81,
+            4.05
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "开心 → 被摸",
+      "sha256": "ddf4a9c647c29dffdba8d421beead31cbbee4307bdd1a7412eb8f56f5084810d"
+    },
+    "E3": {
+      "code": "paused / stopped（fault／急停）",
+      "scene": "异常停止",
+      "emo": "静音",
+      "design": "异常或急停立即停止声音，保持静音直到人工复位。",
+      "mode": "silent",
+      "selected_variant": 0,
+      "file": null,
+      "filename": null,
+      "duration": 0,
+      "steps": [],
+      "sequence": "静音"
+    },
+    "E4": {
+      "code": "panel 点击复位重新开始",
+      "scene": "新一轮开始",
+      "emo": "精神",
+      "design": "短叫接开心哼作为新一轮招呼；不使用此前拍手感片段。",
+      "mode": "sound",
+      "selected_variant": 1,
+      "file": "定稿音频/E4_新一轮开始.wav",
+      "filename": "E4_新一轮开始.wav",
+      "duration": 0.94,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/bark.wav",
+          "label": "汪",
+          "gain": 1.0,
+          "gap": 0.14,
+          "source": "728026.wav",
+          "region": [
+            0.07,
+            0.3
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/happy_2.wav",
+          "label": "开心",
+          "gain": 0.7,
+          "gap": 0,
+          "source": "728026.wav",
+          "region": [
+            0.5,
+            0.81
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "汪 → 开心",
+      "sha256": "df01e1b29e1293e6cc2008458637120e7a00f26b8b881c136f12139fea8dd7c4"
+    },
+    "W1": {
+      "code": "触碰唤醒 · 离开 < 1 分钟",
+      "scene": "精神抖擞：“我就知道你还在”",
+      "emo": "精神抖擞",
+      "design": "一声短促招呼，回应短暂离开后的触碰。",
+      "mode": "sound",
+      "selected_variant": 0,
+      "file": "定稿音频/W1_短暂离开_精神唤醒.wav",
+      "filename": "W1_短暂离开_精神唤醒.wav",
+      "duration": 0.37,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/bark.wav",
+          "label": "汪",
+          "gain": 1.0,
+          "gap": 0,
+          "source": "728026.wav",
+          "region": [
+            0.07,
+            0.3
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "汪",
+      "sha256": "86b92c7d25c78a0ebf9289a6a51975206ebe8ec842fb7d52daa00fbbfd0135d4"
+    },
+    "W2": {
+      "code": "触碰唤醒 · 离开 1–5 分钟",
+      "scene": "睡眼惺忪：“唔……谁呀……哦是你!”",
+      "emo": "睡眼惺忪",
+      "design": "低哼和疑问音后停半秒，再轻声撒娇回应。",
+      "mode": "sound",
+      "selected_variant": 0,
+      "file": "定稿音频/W2_离开稍久_困倦唤醒.wav",
+      "filename": "W2_离开稍久_困倦唤醒.wav",
+      "duration": 1.91,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/bored_1.wav",
+          "label": "无聊",
+          "gain": 1.0,
+          "gap": 0.14,
+          "source": "728030.wav",
+          "region": [
+            2.9,
+            3.22
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/question_1.wav",
+          "label": "疑问",
+          "gain": 1.0,
+          "gap": 0.5,
+          "source": "728030.wav",
+          "region": [
+            3.36,
+            3.56
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/needy_1.wav",
+          "label": "撒娇",
+          "gain": 1.0,
+          "gap": 0,
+          "source": "728022.wav",
+          "region": [
+            3.0,
+            3.6
+          ],
+          "from_override": 3.11,
+          "to_override": null
+        }
+      ],
+      "sequence": "无聊 → 疑问 → 撒娇",
+      "sha256": "17fafd99fea7b565e4800d84eea952498d7569789e492e312f71a4a4d3f25867"
+    },
+    "W3": {
+      "code": "触碰唤醒 · 离开 > 5 分钟",
+      "scene": "惊喜＋撒娇带点小委屈：“你终于来摸我了!”",
+      "emo": "惊喜＋撒娇＋小委屈",
+      "design": "先轻声委屈，再逐渐转为柔和、开心和兴奋，避免直接跳入尖亮短叫。",
+      "mode": "sound",
+      "selected_variant": 1,
+      "file": "定稿音频/W3_离开很久_撒娇唤醒.wav",
+      "filename": "W3_离开很久_撒娇唤醒.wav",
+      "duration": 2.355,
+      "steps": [
+        {
+          "clip": "kits/milk/clips/sad_1.wav",
+          "label": "委屈",
+          "gain": 0.85,
+          "gap": 0.14,
+          "source": "728028.wav",
+          "region": [
+            2.92,
+            3.63
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/pet_1.wav",
+          "label": "被摸",
+          "gain": 0.9,
+          "gap": 0.14,
+          "source": "728022.wav",
+          "region": [
+            3.81,
+            4.05
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/happy_2.wav",
+          "label": "开心",
+          "gain": 1.0,
+          "gap": 0.1,
+          "source": "728026.wav",
+          "region": [
+            0.5,
+            0.81
+          ],
+          "from_override": null,
+          "to_override": null
+        },
+        {
+          "clip": "kits/milk/clips/excited_1.wav",
+          "label": "兴奋",
+          "gain": 0.9,
+          "gap": 0,
+          "source": "728026.wav",
+          "region": [
+            1.09,
+            1.3
+          ],
+          "from_override": null,
+          "to_override": null
+        }
+      ],
+      "sequence": "委屈 → 被摸 → 开心 → 兴奋",
+      "sha256": "f3f6f61d47314fbc3fb8050115f84d7b173e854107d384e8ba93f04fe2d59a89"
+    }
+  }
+}
