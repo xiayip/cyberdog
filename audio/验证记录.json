@@ -1,0 +1,163 @@
+[
+  {
+    "event": "A1",
+    "seconds": 0.37,
+    "peak_dbfs": -6.0,
+    "max_adjacent_centroid_delta_hz": 0,
+    "file": "A1_开机招呼.wav"
+  },
+  {
+    "event": "A2",
+    "seconds": 0.8,
+    "peak_dbfs": -6.0,
+    "max_adjacent_centroid_delta_hz": 185,
+    "file": "A2_回到待机.wav"
+  },
+  {
+    "event": "A3",
+    "seconds": 0.39,
+    "peak_dbfs": -15.89,
+    "max_adjacent_centroid_delta_hz": 0,
+    "file": "A3_静静待机.wav"
+  },
+  {
+    "event": "B1",
+    "seconds": 1.01,
+    "peak_dbfs": -6.0,
+    "max_adjacent_centroid_delta_hz": 103,
+    "file": "B1_触碰回应.wav"
+  },
+  {
+    "event": "B2",
+    "seconds": 0.92,
+    "peak_dbfs": -6.0,
+    "max_adjacent_centroid_delta_hz": 112,
+    "file": "B2_歪头打量.wav"
+  },
+  {
+    "event": "B3",
+    "seconds": 0.805,
+    "peak_dbfs": -11.19,
+    "max_adjacent_centroid_delta_hz": 382,
+    "file": "B3_抬腕起身.wav"
+  },
+  {
+    "event": "B4",
+    "seconds": 0.795,
+    "peak_dbfs": -6.0,
+    "max_adjacent_centroid_delta_hz": 79,
+    "file": "B4_握手撒娇.wav"
+  },
+  {
+    "event": "B5",
+    "seconds": 1.0,
+    "peak_dbfs": -6.0,
+    "max_adjacent_centroid_delta_hz": 596,
+    "file": "B5_握住手了.wav"
+  },
+  {
+    "event": "C1",
+    "seconds": 0.805,
+    "peak_dbfs": -6.0,
+    "max_adjacent_centroid_delta_hz": 486,
+    "file": "C1_发现毛线球.wav"
+  },
+  {
+    "event": "C2",
+    "seconds": 1.88,
+    "peak_dbfs": -11.19,
+    "max_adjacent_centroid_delta_hz": 561,
+    "file": "C2_视线追球.wav"
+  },
+  {
+    "event": "C3",
+    "seconds": 1.235,
+    "peak_dbfs": -6.0,
+    "max_adjacent_centroid_delta_hz": 374,
+    "file": "C3_找回目标.wav"
+  },
+  {
+    "event": "C5",
+    "seconds": 0.35,
+    "peak_dbfs": -6.0,
+    "max_adjacent_centroid_delta_hz": 0,
+    "file": "C5_闭爪发力.wav"
+  },
+  {
+    "event": "C6",
+    "seconds": 1.515,
+    "peak_dbfs": -4.78,
+    "max_adjacent_centroid_delta_hz": 382,
+    "file": "C6_抓球成功_开心.wav"
+  },
+  {
+    "event": "D1",
+    "seconds": 0.97,
+    "peak_dbfs": -6.0,
+    "max_adjacent_centroid_delta_hz": 103,
+    "file": "D1_首次失败_鼓劲.wav"
+  },
+  {
+    "event": "D2",
+    "seconds": 1.08,
+    "peak_dbfs": -6.0,
+    "max_adjacent_centroid_delta_hz": 435,
+    "file": "D2_再次失败_着急.wav"
+  },
+  {
+    "event": "D3",
+    "seconds": 1.82,
+    "peak_dbfs": -6.0,
+    "max_adjacent_centroid_delta_hz": 202,
+    "file": "D3_抓取失败_委屈.wav"
+  },
+  {
+    "event": "D4",
+    "seconds": 0.37,
+    "peak_dbfs": -6.0,
+    "max_adjacent_centroid_delta_hz": 0,
+    "file": "D4_重新振作.wav"
+  },
+  {
+    "event": "E1",
+    "seconds": 0.28,
+    "peak_dbfs": -6.0,
+    "max_adjacent_centroid_delta_hz": 0,
+    "file": "E1_等待复位.wav"
+  },
+  {
+    "event": "E2",
+    "seconds": 0.76,
+    "peak_dbfs": -6.0,
+    "max_adjacent_centroid_delta_hz": 185,
+    "file": "E2_回家趴好.wav"
+  },
+  {
+    "event": "E4",
+    "seconds": 0.94,
+    "peak_dbfs": -6.0,
+    "max_adjacent_centroid_delta_hz": 596,
+    "file": "E4_新一轮开始.wav"
+  },
+  {
+    "event": "W1",
+    "seconds": 0.37,
+    "peak_dbfs": -6.0,
+    "max_adjacent_centroid_delta_hz": 0,
+    "file": "W1_短暂离开_精神唤醒.wav"
+  },
+  {
+    "event": "W2",
+    "seconds": 1.91,
+    "peak_dbfs": -6.0,
+    "max_adjacent_centroid_delta_hz": 310,
+    "file": "W2_离开稍久_困倦唤醒.wav"
+  },
+  {
+    "event": "W3",
+    "seconds": 2.355,
+    "peak_dbfs": -6.0,
+    "max_adjacent_centroid_delta_hz": 481,
+    "file": "W3_离开很久_撒娇唤醒.wav"
+  }
+]
