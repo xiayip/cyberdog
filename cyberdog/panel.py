@@ -21,7 +21,7 @@ def main():
     root.title('Cyberdog · 桌面宠物')
     root.geometry('640x300')
     label=tk.StringVar(value='等待 Cyberdog 状态…')
-    info=tk.StringVar(value='复位 → J3 触碰握手 / 自动追球')
+    info=tk.StringVar(value='复位 → J3 握手 → 追球抓放 → 自动跳舞')
     status_at=[0.]
     phase=['']
     progress=tk.StringVar(value='')
@@ -31,14 +31,19 @@ def main():
         if value.get('schema_version')!=2:return
         status_at[0]=time.monotonic()
         phase[0]=value['phase']
-        if phase[0]!='tracking' and not phase[0].startswith('grasp_'):progress.set('')
+        if phase[0]!='tracking' and not phase[0].startswith(('grasp_','virtual_','dance_')):progress.set('')
         label.set(f'{"模拟演示" if value["mock"] else "实机"} | {value["mode"] or "待机"} | {value["phase"]}')
         info.set(value['message']+'\n'+(value['outcome'] or ''))
     sub=node.create_subscription(String,'/cyberdog/state',state,STATE_QOS)
     def tracking(msg):
         data=json.loads(msg.data);ball=data.get('ball',{})
-        if phase[0].startswith('grasp_'):
-            text=f"抓取尝试 {ball.get('attempt',0)} / {ball.get('max_attempts',3)}"
+        if phase[0].startswith('dance_'):
+            dance=data.get('dance',{})
+            text=dance.get('section','正在准备舞蹈')
+            if phase[0]=='dance_running':text+=f" · {dance.get('elapsed_sec',0):.1f} / {dance.get('duration_sec',0):.1f} 秒"
+            progress.set(text);return
+        if phase[0].startswith(('grasp_','virtual_')):
+            text='兜底抓取' if phase[0].startswith('virtual_') or ball.get('virtual_caught') else f"抓取尝试 {ball.get('attempt',0)} / {ball.get('max_attempts',3)}"
             if ball.get('retry_pending'):text+=' · 等待停止后重新定位'
             elif ball.get('vision_locked'):text+=' · 已锁定位置，本轮不再依赖视觉'
             elif ball.get('using_frozen_target'):text+=' · 毛球暂不可见，继续抓取已确认位置'
@@ -64,7 +69,7 @@ def main():
         progress.set(text)
     node.create_subscription(String,'/cyberdog/tracking_status',tracking,1)
     pub=node.create_publisher(String,'/cyberdog/command',10)
-    clients={name:node.create_client(Trigger,'/cyberdog/'+name) for name in ['reset','stop']}
+    clients={name:node.create_client(Trigger,'/cyberdog/'+name) for name in ['reset','stop','dance']}
     def send(command):
         if command in clients:
             client=clients[command]
@@ -80,8 +85,8 @@ def main():
     tk.Label(root,textvariable=info,wraplength=600,height=3).pack()
     tk.Label(root,textvariable=progress,wraplength=600).pack()
     actions=tk.Frame(root);actions.pack(pady=18)
-    for i,(name,text) in enumerate([('reset','复位 / 重新开始'),('stop','暂停并保持')]):
-        tk.Button(actions,text=text,width=22,height=2,command=lambda n=name:send(n)).grid(row=0,column=i,padx=8)
+    for i,(name,text) in enumerate([('reset','复位 / 重新开始'),('dance','跳舞（抓放后）'),('stop','暂停并保持')]):
+        tk.Button(actions,text=text,width=17,height=2,command=lambda n=name:send(n)).grid(row=0,column=i,padx=6)
     tk.Label(root,text='暂停按钮仅取消本程序的动作，不代替硬件急停。').pack(pady=15)
     def poll():
         if rclpy.ok():rclpy.spin_once(node,timeout_sec=0.)

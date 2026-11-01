@@ -8,11 +8,11 @@ import pytest
 from cyberdog.behavior import Cyberdog
 from cyberdog.senses import Senses
 from cyberdog.table_scene import table_box
-from test_behavior import graph, until, spin
+from test_behavior import graph, until, spin, wake
 
 
 def lock_target(game):
-    game.state='active';game.mode='ball'
+    game.state='active';game.mode='ball';game.handshake_completed=True
     seq=game.ball_sequence
     seq.accept(dict(center=[.3,0.,.1],radius=.025),game.get_clock().now().nanoseconds*1e-9)
     seq.stable=True;seq.begin()
@@ -38,7 +38,7 @@ def test_loss_after_lock_completes_one_attempt_including_close_and_direct_place(
                 g.ball_sequence.reject(ValueError('target unavailable'),transient=True)
                 assert g.ball_sequence.status()['using_frozen_target']
         g.set_state=state
-        g.command('reset');until(e,lambda:g.phase=='complete',timeout=6.)
+        wake(g,e);until(e,lambda:g.phase=='complete',timeout=6.)
         assert closed==['grasp_closing'] and 'grasp_place' in stages and 'grasp_lift' not in stages
         assert g.ball_sequence.attempts==1 and not g.robot.grip_closed
         assert 'grasp_retry_wait' not in stages
@@ -69,27 +69,33 @@ def test_missing_target_cannot_start_first_or_retry_attempt():
 
 @pytest.mark.parametrize('eventual_success',[True,False])
 def test_three_attempts_reacquire_with_new_dwell_then_complete_or_stop(eventual_success):
-    with graph((Cyberdog,Senses),['mock_ball_visible:=true','ball_still_sec:=0.5','grasp_retry_delay_sec:=0.2']) as ([g,s],e):
-        original=g.set_state;attempts=[];tracking_at=[];starts=[]
+    with graph((Cyberdog,Senses),['mock_ball_visible:=true','grasp_retry_delay_sec:=0.2']) as ([g,s],e):
+        original=g.set_state;attempts=[];tracking_at=[];starts=[];dwells=[];phases=[]
         def state(a,b,c):
-            original(a,b,c)
-            if b=='tracking':tracking_at.append(time.monotonic())
+            original(a,b,c);phases.append(b)
+            if b=='tracking':
+                tracking_at.append(time.monotonic());dwells.append(g.ball_sequence.status()['dwell_sec'])
             if b=='grasp_settling':
                 attempts.append(g.ball_sequence.attempts);starts.append(time.monotonic())
                 if not eventual_success or g.ball_sequence.attempts<3:
                     g.ball_sequence.fail('抓取路径不完整',retryable=True)
         g.set_state=state
-        g.command('reset')
+        wake(g,e)
         until(e,lambda:g.state=='paused',timeout=8.)
         assert attempts==[1,2,3] and len(tracking_at)==3
-        assert all(start-track>=.5 for start,track in zip(starts,tracking_at))
+        assert dwells==[1.,.5,.5]
+        assert all(start-track>=dwell for start,track,dwell in zip(starts,tracking_at,dwells))
         assert g.ball_sequence.retry_at is None
         if eventual_success:
             assert g.phase=='complete' and not g.robot.grip_closed
         else:
             assert '3/3' in g.message and not g.robot.grip_closed
+            assert g.outcome=='virtual_grasp_only' and phases.count('virtual_approach')==1
+            assert phases.count('virtual_closing')==1 and phases.count('virtual_return')==1
+            assert not g.ball_sequence.dance_ready and 'grasp_place' not in phases
             spin(e,.4);assert attempts==[1,2,3]
         g.command('reset');assert g.ball_sequence.attempts==0
+        assert g.ball_sequence.status()['dwell_sec']==1. and not g.ball_sequence.virtual_attempted
 
 
 def test_explicit_movement_survives_next_missing_sample_and_prevents_close():

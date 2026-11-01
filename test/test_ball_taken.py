@@ -61,7 +61,8 @@ def test_empty_closed_gripper_does_not_interrupt_outside_placement(stage):
         assert not g.ball_taken.watch() and not g.ball_taken.busy
 
 
-def test_late_accepted_place_must_terminate_before_bowing_from_the_stopped_pose():
+@pytest.mark.parametrize('stopped_j4,target_j4',[(.33,-.42),(-1.3,-1.52)])
+def test_late_accepted_place_must_terminate_before_bowing_from_the_stopped_pose(stopped_j4,target_j4):
     with graph() as ([g],e):
         seq=placing(g);seq.submitting=True;g.robot.sequence_motion_busy=True
         feedback(g,.95);assert g.ball_taken.watch()
@@ -71,10 +72,10 @@ def test_late_accepted_place_must_terminate_before_bowing_from_the_stopped_pose(
         accepted=Future();accepted.set_result(handle);seq.accepted(accepted)
         g.ball_taken.tick()
         assert canceled and g.phase=='ball_taken_stopping' and not g.robot.motion.busy
-        g.robot.mock_pose=[.13,.6,.8,.33,-.2,.4]
+        g.robot.mock_pose=[.13,.6,.8,stopped_j4,-.2,.4]
         terminal.set_result(SimpleNamespace(status=5,result=SimpleNamespace(error_code=0)))
         until(e,lambda:g.phase=='ball_taken')
-        assert g.robot.current==pytest.approx([.13,.6,.8,-.12,-.2,.4])
+        assert g.robot.current==pytest.approx([.13,.6,.8,target_j4,-.2,.4])
         assert g.state=='paused' and not seq.running and seq.retry_at is None
 
 
@@ -167,7 +168,7 @@ def test_ros_place_is_canceled_then_only_j4_bows_without_release(event,monkeypat
         if event=='collision':
             assert '碰撞' in g.message and r.position==stopped
         else:
-            target=list(stopped);target[3]-=.45
+            target=list(stopped);target[3]-=.75
             assert list(r.requests[-1].trajectory.points[-1].positions)==pytest.approx(target)
             from cyberdog.game_core import path_points
             baseline=path_points(stopped,[target],.6,.65,[1.3]*6)

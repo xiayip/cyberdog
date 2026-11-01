@@ -33,6 +33,14 @@ class Robot:
         self.reference=None
         self.tracking_anchor=None
         self.tracking_velocity=[0.]*6
+        self.tracking_ball_profile=False
+        self.ball_multijoint_tracking=param(node,'ball_multijoint_tracking',False)
+        if type(self.ball_multijoint_tracking) is not bool:raise ValueError('ball_multijoint_tracking must be boolean')
+        ranges=param(node,'ball_tracking_arm_ranges',[.6,.3,.35])
+        if len(ranges)!=3:raise ValueError('ball_tracking_arm_ranges requires J1/J2/J3')
+        self.tracking_arm_ranges=[finite(v,.05,cap,'arm tracking range') for v,cap in zip(ranges,(.8,.4,.5))]
+        self.tracking_arm_speed=finite(param(node,'ball_tracking_arm_speed',.45),.1,.6,'arm tracking speed')
+        self.tracking_arm_acceleration=finite(param(node,'ball_tracking_arm_acceleration',1.),.1,1.3,'arm tracking acceleration')
         self.ball_velocity_feedforward=param(node,'ball_velocity_feedforward',False)
         self.tracking_feedforward=False
         self.tracking_speed=.2*self.motion.limit_scale
@@ -74,10 +82,26 @@ class Robot:
     def busy(self):return self.sequence_motion_busy or self.motion.busy or self.modes.busy or self.grip_busy or self.verifying is not None
 
     def set_tracking_profile(self,ball):
+        self.tracking_ball_profile=ball
         self.tracking_feedforward=ball and self.ball_velocity_feedforward
         self.tracking_speed=self.ball_tracking_speed if ball else .2*self.motion.limit_scale
         self.tracking_acceleration=self.ball_tracking_acceleration if ball else .65*self.motion.limit_scale
         self.tracking_velocity=[0.]*6
+
+    def tracking_bounds(self):
+        arm=self.tracking_arm_ranges if self.ball_multijoint_tracking and self.tracking_ball_profile else [0.]*3
+        offsets=[*arm,self.tracking_pitch_range,self.tracking_yaw_range,0.]
+        anchor=self.tracking_anchor or self.reference
+        lower=[max(min(lo+(.05 if d else 0.),a),a-d) for lo,a,d in zip(LOWER,anchor,offsets)]
+        upper=[min(max(hi-(.05 if d else 0.),a),a+d) for hi,a,d in zip(UPPER,anchor,offsets)]
+        return lower,upper
+
+    def tracking_limits(self):
+        speeds=[self.tracking_speed]*6;accelerations=[self.tracking_acceleration]*6
+        if self.ball_multijoint_tracking and self.tracking_ball_profile:
+            speeds[:3]=[min(self.tracking_speed,self.tracking_arm_speed)]*3
+            accelerations[:3]=[min(self.tracking_acceleration,self.tracking_arm_acceleration)]*3
+        return speeds,accelerations
 
     @property
     def current(self):return list(self.mock_pose if self.mock else self.motion.pose) if (self.mock or self.motion.pose is not None) else None
@@ -111,19 +135,22 @@ class Robot:
     def move(self,targets,callback,speed=.12,minimum=1.,*,inspection=False,time_scale=1.):
         if self.busy or self.servo:return False,'robot busy or servo active'
         if not self.fresh():return False,'joint feedback unavailable'
-        if not math.isfinite(speed) or not 0<speed<=.4*self.motion.limit_scale:
-            return False,'path speed exceeds ordinary motion envelope'
+        velocity_limits=self.motion.velocity_limits(inspection)
+        if not math.isfinite(speed) or not 0<speed<=max(velocity_limits):
+            return False,'path speed exceeds motion envelope'
         try:
             time_scale=finite(time_scale,.5,1.,'path time scale')
             if inspection and time_scale!=1.:raise ValueError('inspection cannot use lift time scaling')
-            if speed/time_scale>MAX_SCALED_PATH_SPEED:raise ValueError('scaled path speed exceeds 1.2 rad/s')
+            if not inspection and speed/time_scale>MAX_SCALED_PATH_SPEED:raise ValueError('scaled path speed exceeds 1.2 rad/s')
             targets=[pose(p) for p in targets]
             acceleration=self.motion.acceleration_limits(inspection)
-            path_points(bounded_start(self.current),targets,speed,minimum,acceleration,time_scale=time_scale)
+            path_points(bounded_start(self.current),targets,speed,minimum,acceleration,
+                time_scale=time_scale,velocity_limits=velocity_limits)
         except ValueError as exc:return False,str(exc)
         self.callback,self.move_target=callback,targets[-1]
         accepted,reason=self.motion.start_path(
-            lambda current:path_points(current,targets,speed,minimum,acceleration,time_scale=time_scale),
+            lambda current:path_points(current,targets,speed,minimum,acceleration,
+                time_scale=time_scale,velocity_limits=velocity_limits),
             inspection=inspection,time_scale=time_scale)
         if self.mock and accepted:self.motion.deadline=time.monotonic()+self.mock_delay
         if not accepted:self.callback=None
@@ -137,6 +164,28 @@ class Robot:
             self.verifying=(time.monotonic(),None)
             return
         self.move_complete(ok,message)
+
+    def dance(self,plan,callback):
+        if self.busy or self.servo:return False,'robot busy or servo active'
+        if not self.fresh():return False,'joint feedback unavailable'
+        from .choreography import DancePlan
+        try:
+            if not isinstance(plan,DancePlan):raise ValueError('validated immutable dance plan required')
+            if (plan.speeds!=tuple(self.motion.velocity_limits(inspection=True)) or
+                    plan.accelerations!=tuple(self.motion.acceleration_limits(inspection=True))):
+                raise ValueError('dance motion limits changed after planning')
+            points=plan.points
+            def factory(anchor):
+                if max(abs(a-b) for a,b in zip(anchor,points[0][1]))>.002:
+                    raise ValueError('arm reference moved after dance path check')
+                return points
+            factory(bounded_start(self.current if self.mock else self.motion.reference_pose))
+        except (ValueError,TypeError) as exc:return False,str(exc)
+        self.callback,self.move_target=callback,points[-1][1]
+        accepted,reason=self.motion.start_path(factory,inspection=True)
+        if self.mock and accepted:self.motion.deadline=time.monotonic()+self.mock_delay
+        if not accepted:self.callback=None
+        return accepted,reason
 
     def bow(self,target,callback,*,speed=.6,speed_scale=3.):
         if self.busy or self.servo:return False,'robot busy or servo active'
@@ -174,7 +223,7 @@ class Robot:
         # own braking tail so loss of the publisher never leaves a moving endpoint.
         if self.position_pub is None:return
         v=[x if abs(x)>=1e-6 else 0. for x in velocity] if velocity is not None else [0.]*6
-        a=self.tracking_acceleration
+        _,accelerations=self.tracking_limits()
         def point(t,q,dq):
             ns=round(t*1e9)
             return JointTrajectoryPoint(positions=list(q),velocities=list(dq),
@@ -182,7 +231,7 @@ class Robot:
         points=[point(.025,target,v)]
         # Nanosecond-quantized stop times avoid duplicate ROS timestamps and
         # floating-point residual velocity at the terminal point.
-        stops=[math.ceil(abs(x)/a*1e9)/1e9 if x else 0. for x in v]
+        stops=[math.ceil(abs(x)/a*1e9)/1e9 if x else 0. for x,a in zip(v,accelerations)]
         for stop in sorted(set(t for t in stops if t)):
             q=[];dq=[]
             for x,speed,duration in zip(target,v,stops):
@@ -198,16 +247,12 @@ class Robot:
         target=pose(target)
         if self.reference is None:self.reference=self.current
         if not math.isfinite(dt) or dt<=0:return False
-        offsets=[0.,0.,0.,self.tracking_pitch_range,self.tracking_yaw_range,0.]
-        anchor=self.tracking_anchor or self.reference
-        # Use the same envelope and joint margins as the image servo. Fixed
-        # axes may be at zero reset; only the two tracking axes get a margin.
-        lower=[max(min(lo+(.05 if d else 0.),a),a-d) for lo,a,d in zip(LOWER,anchor,offsets)]
-        upper=[min(max(hi-(.05 if d else 0.),a),a+d) for hi,a,d in zip(UPPER,anchor,offsets)]
+        lower,upper=self.tracking_bounds()
+        speeds,accelerations=self.tracking_limits()
         try:
             self.reference,self.tracking_velocity=tracking_step(
                 self.reference,self.tracking_velocity,target,min(dt,.05),
-                self.tracking_speed,self.tracking_acceleration,lower,upper)
+                speeds,accelerations,lower,upper)
         except ValueError as exc:
             self.hold();self.fault=str(exc);return False
         self.publish_reference(self.reference,self.tracking_velocity if self.tracking_feedforward or self.modes.mode=='position' else None)

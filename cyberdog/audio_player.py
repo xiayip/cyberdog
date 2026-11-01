@@ -40,7 +40,7 @@ class AudioPlayer:
     def __init__(self,sounds,*,backend='auto',server='',device='',volume=.7,
                  clock=time.monotonic,popen=subprocess.Popen,report=lambda message:None):
         self.sounds=sounds;self.clock=clock;self.popen=popen;self.report=report
-        self.volume=volume;self.device=device;self.env=os.environ.copy()
+        self.volume=volume;self.volumes={};self.device=device;self.env=os.environ.copy()
         if server:self.env['PULSE_SERVER']=server
         if backend not in ('auto','paplay'):raise ValueError('unknown audio player')
         # Prefer the desktop's default output (including Bluetooth) over a raw
@@ -67,7 +67,7 @@ class AudioPlayer:
     def command(self,event):
         path,_=self.sounds[event]
         args=['paplay','--client-name=cyberdog','--stream-name='+event,'--latency-msec=50',
-              '--volume='+str(round(65536*self.volume))]
+              '--volume='+str(round(65536*self.volumes.get(event,self.volume)))]
         if self.device:args+=['--device='+self.device]
         return args+[str(path)]
 

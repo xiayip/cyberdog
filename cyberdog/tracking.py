@@ -2,6 +2,16 @@
 import math
 
 
+def add_velocity_feedforward(reference,target,joints,dt,max_speed,lower,upper):
+    """Blend target motion with image feedback; Robot.track still limits braking."""
+    result=list(target)
+    for index,ff in zip((3,4),joints):
+        speed=(target[index]-reference[index])/dt+ff
+        speed=max(-max_speed,min(max_speed,speed))
+        result[index]=max(lower[index],min(upper[index],reference[index]+speed*dt))
+    return result
+
+
 def tracking_step(reference, velocity, target, dt, max_speed, max_acceleration, lower, upper):
     if not math.isfinite(dt) or not 0 < dt <= .05:
         raise ValueError('tracking step requires 0 < dt <= 0.05')
@@ -9,10 +19,13 @@ def tracking_step(reference, velocity, target, dt, max_speed, max_acceleration, 
         raise ValueError('tracking requires six axes')
     if not all(math.isfinite(x) for row in (reference,velocity,target,lower,upper) for x in row):
         raise ValueError('non-finite tracking input')
-    if not math.isfinite(max_speed) or not math.isfinite(max_acceleration) or min(max_speed,max_acceleration)<=0:
+    speeds=list(max_speed) if isinstance(max_speed,(list,tuple)) else [max_speed]*6
+    accelerations=list(max_acceleration) if isinstance(max_acceleration,(list,tuple)) else [max_acceleration]*6
+    if (len(speeds)!=6 or len(accelerations)!=6
+            or not all(math.isfinite(x) and x>0 for x in speeds+accelerations)):
         raise ValueError('invalid tracking bounds')
     q_out,v_out=[],[]
-    for q,v,goal,lo,hi in zip(reference,velocity,target,lower,upper):
+    for q,v,goal,lo,hi,max_speed,max_acceleration in zip(reference,velocity,target,lower,upper,speeds,accelerations):
         if not lo-1e-9<=q<=hi+1e-9:raise ValueError('tracking reference outside workspace')
         # Reserve one full command interval plus continuous stopping distance.
         def braking_speed(distance):

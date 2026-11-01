@@ -7,7 +7,7 @@ from moveit_msgs.srv import GetStateValidity
 from sensor_msgs.msg import JointState
 
 from .common import finite, param
-from .motion import JOINTS, LOWER, bounded_start
+from .motion import JOINTS, LOWER, MAX_BOW_DELTA, bounded_start
 
 
 class BallTakenReaction:
@@ -16,12 +16,13 @@ class BallTakenReaction:
         self.threshold=finite(param(game,'grasp_taken_threshold',.92),0.,1.,'ball taken threshold')
         if self.threshold>=self.robot.gripper_close_position:
             raise ValueError('ball taken threshold must be below gripper close position')
-        self.delta=finite(param(game,'grasp_taken_bow_delta',.45),.02,.5,'ball taken J4 bow')
+        self.delta=finite(param(game,'grasp_taken_bow_delta',.75),.02,MAX_BOW_DELTA,'ball taken J4 bow')
         self.speed=finite(param(game,'grasp_taken_bow_speed',min(.6,.4*self.robot.motion.limit_scale)),
             .01,.4*self.robot.motion.limit_scale,'ball taken bow speed')
         self.speed_scale=finite(param(game,'grasp_taken_bow_speed_scale',3.),1.,3.,'ball taken bow speed scale')
         self.validity=game.create_client(GetStateValidity,'/check_state_validity')
         self.phase='';self.future=None;self.deadline=0.;self.position=None
+        self.reason='毛球被拿走'
         self.start_pose=None;self.target=None;self.samples=[];self.index=0
 
     @property
@@ -36,12 +37,19 @@ class BallTakenReaction:
         if not seq.running or not seq.placement_started or seq.cancelled or self.busy:return False
         position=self.robot.fresh_gripper_position()
         if position is None or position<=self.threshold:return False
+        return self.start(position)
+
+    def start(self,position,*,empty_grasp=False):
+        if self.busy:return False
         # Invalidate every old placement/release callback before cancelling its
         # owned action. Keep the gripper's existing close command unchanged.
-        self.g.pause(f'夹爪实际位置 {position:.3f} > {self.threshold:g}，毛球被拿走，取消放球')
+        reason='兜底未抓到毛球' if empty_grasp else '毛球被拿走'
+        self.g.pause(f'夹爪实际位置 {position:.3f}，{reason}，准备低头' if empty_grasp else
+                     f'夹爪实际位置 {position:.3f} > {self.threshold:g}，毛球被拿走，取消放球')
+        self.reason=reason
         self.position=position;self.phase='stopping';self.deadline=time.monotonic()+8.
-        self.g.outcome='ball_taken'
-        self.g.set_state('transition','ball_taken_stopping','毛球被拿走，等待放球轨迹取消并停稳')
+        self.g.outcome='virtual_grasp_empty' if empty_grasp else 'ball_taken'
+        self.g.set_state('transition','ball_taken_stopping',reason+'，等待当前动作停止并停稳')
         return True
 
     def tick(self):
@@ -79,7 +87,7 @@ class BallTakenReaction:
                 req.robot_state=RobotState(is_diff=True,joint_state=JointState(
                     name=JOINTS+[self.robot.gripper_joint],position=self.samples[self.index]+[position]))
                 self.future=self.validity.call_async(req)
-        except Exception as exc:self.g.pause('毛球被拿走后保持：'+str(exc))
+        except Exception as exc:self.g.pause(self.reason+'后保持：'+str(exc))
 
     def bow(self):
         if not self.busy:return
@@ -90,11 +98,11 @@ class BallTakenReaction:
             if self.robot.motion.ready() or reference is None or max(abs(a-b) for a,b in zip(reference,self.start_pose))>.001:
                 raise ValueError('低头检查期间保持姿态改变')
         self.phase='bowing';self.deadline=time.monotonic()+12.
-        self.g.set_state('transition','ball_taken_bowing',f'毛球被拿走，从当前姿态低头，J4 下转 {self.start_pose[3]-self.target[3]:.2f} rad，{self.speed_scale:g} 倍速')
+        self.g.set_state('transition','ball_taken_bowing',f'{self.reason}，从当前姿态低头，J4 下转 {self.start_pose[3]-self.target[3]:.2f} rad，{self.speed_scale:g} 倍速')
         if self.busy:self.g.issue(lambda cb:self.robot.bow(self.target,cb,
             speed=self.speed,speed_scale=self.speed_scale),self.finished)
 
     def finished(self):
         if not self.busy:return
         self.phase=''
-        self.g.set_state('paused','ball_taken','毛球被拿走，已低头并保持；点击复位重新开始')
+        self.g.set_state('paused','ball_taken',self.reason+'，已低头并保持；点击复位重新开始')

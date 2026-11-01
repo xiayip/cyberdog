@@ -3,7 +3,7 @@ import math
 from pathlib import Path
 
 
-def select_ball(rows, width, height, min_score=.7):
+def select_ball(rows, width, height, min_score=.35):
     """Keep original network confidence; ambiguous targets are not actionable."""
     candidates=[]
     for row in rows:
@@ -19,7 +19,9 @@ def select_ball(rows, width, height, min_score=.7):
 
 
 class YoloBall:
-    def __init__(self, model_path, device='0'):
+    def __init__(self, model_path, device='0', min_score=.35):
+        if not math.isfinite(min_score) or not .1<=min_score<=.95:raise ValueError('invalid ball confidence threshold')
+        self.min_score=min_score
         path=Path(model_path).expanduser()
         if not path.is_file():raise ValueError(f'YOLOE weights missing: {path}')
         import torch
@@ -31,9 +33,9 @@ class YoloBall:
         # Warm up once in the perception worker. The caller rejects this stale
         # first frame; no checkpoint or text-encoder download occurs at runtime.
         import numpy as np
-        self.model.predict(np.zeros((400,640,3),dtype=np.uint8),device=device,imgsz=640,conf=.7,verbose=False)
+        self.model.predict(np.zeros((400,640,3),dtype=np.uint8),device=device,imgsz=640,conf=self.min_score,verbose=False)
 
     def detect(self,frame):
-        result=self.model.predict(frame,device=self.device,imgsz=640,conf=.7,verbose=False)[0]
+        result=self.model.predict(frame,device=self.device,imgsz=640,conf=self.min_score,verbose=False)[0]
         h,w=frame.shape[:2]
-        return select_ball(result.boxes.data.cpu().tolist(),w,h)
+        return select_ball(result.boxes.data.cpu().tolist(),w,h,self.min_score)

@@ -119,7 +119,7 @@ done <<< "$python_missing"
 ros_packages=(
     rclpy std-msgs rcl-interfaces std-srvs sensor-msgs control-msgs trajectory-msgs
     action-msgs controller-manager-msgs launch-ros ament-index-python tf2-ros
-    geometry-msgs moveit-msgs shape-msgs image-transport rqt-image-view
+    geometry-msgs moveit-msgs shape-msgs image-transport rqt-image-view pinocchio
 )
 for name in "${ros_packages[@]}"; do apt_packages+=("ros-jazzy-$name"); done
 missing=()
@@ -230,6 +230,35 @@ PY
     fi
 else
     info '已跳过桌面音频连接检查；运行时仍需连接音频服务器'
+fi
+
+native_packages=(gravity_compensation_model mit_impedance_controller mit_damping_controller mit_position_adapter_controller)
+native_runtime_missing() {
+    python3 -B - "$workspace" "${native_packages[@]}" <<'PY'
+from pathlib import Path
+import subprocess, sys
+workspace = Path(sys.argv[1])
+for name in sys.argv[2:]:
+    library = workspace/'install'/name/'lib'/f'lib{name}.so'
+    if not library.is_file():
+        print(f'{name}: 缺少 {library}')
+        continue
+    result = subprocess.run(['ldd', str(library)], capture_output=True, text=True)
+    missing = sorted({line.strip() for line in result.stdout.splitlines() if 'not found' in line})
+    if result.returncode or missing:
+        print(f'{name}: ' + '; '.join(missing or [result.stderr.strip() or 'ldd 失败']))
+PY
+}
+info '检查已编译控制器的动态库依赖'
+native_missing=$(native_runtime_missing)
+if [[ -n "$native_missing" ]]; then
+    printf '%s\n' "$native_missing"
+    $build || die '控制器运行库缺失或与当前镜像版本不匹配；去掉 --check/--skip-build 重新运行可重编译修复'
+    info '按当前镜像重编译重力模型及三个相关控制器，保留工作区源码与配置'
+    (cd "$workspace" && colcon build --symlink-install --packages-select "${native_packages[@]}" \
+        --cmake-force-configure --cmake-clean-first --executor sequential)
+    native_missing=$(native_runtime_missing)
+    [[ -z "$native_missing" ]] || die "重编译后运行库仍不可用：$native_missing"
 fi
 
 if $build; then

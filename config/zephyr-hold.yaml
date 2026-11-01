@@ -1,8 +1,10 @@
-# Armie local impedance holding gains for OmniPicker + flange + Gemini 305.
-# Apply after the original Zephyr bringup starts its position chain, while
-# zephyr_arm_impedance_controller is inactive, before Armie /ready.
-# Keeps the original gravity model, damping-mode parameters, torque caps,
-# soft limits and trajectory guard. Not a replacement controllers.yaml.
+# Cyberdog overrides for OmniPicker + flange + Gemini 305.
+# Merged into a copy of controllers.yaml by bringup.launch.py.
+# J3 damping-mode gravity scale: 0.98 -> 1.08 to reduce slow downward drift.
+# Keeps viscous damping, gravity biases, torque caps, soft limits and guard.
 zephyr_arm_impedance_controller:
   ros__parameters:
     stiffness: [20.0, 45.0, 65.0, 16.0, 16.0, 20.0]
+zephyr_arm_damping_controller:
+  ros__parameters:
+    gravity_compensation.scale: [0.0, 0.85, 1.08, 0.95, 1.0, 0.0]

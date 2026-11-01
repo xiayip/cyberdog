@@ -13,6 +13,12 @@ IMP = 'rebot_arm_rs_impedance_controller'
 JTC = 'rebot_arm_rs_impedance_trajectory_controller'
 POS = 'rebot_arm_rs_trajectory_controller'
 
+# These preflight failures describe transient settling, not an ownership,
+# active-action or controller-layout fault. Callers may wait within a deadline.
+JOINTS_SETTLING = 'fresh stationary joints required before mode switching'
+JTC_SETTLING = 'active JTC is not observably settled'
+SETTLING_REASONS = frozenset((JOINTS_SETTLING, JTC_SETTLING))
+
 
 def controller_names(prefix):
     if prefix not in ('rebot_arm_rs', 'zephyr_arm'):
@@ -148,7 +154,7 @@ class ControllerModes:
     def check(self,active):
         now=time.monotonic()
         if now-self.motion.pose_at>.5 or not self.motion.stationary or self.quiet_since is None or now-self.quiet_since<.5:
-            return 'fresh stationary joints required before mode switching'
+            return JOINTS_SETTLING
         if self.motion.busy or any(self.status.values()):
             return 'trajectory still active'
         if self.node.count_publishers('/'+self.imp+'/commands')>1:
@@ -160,7 +166,7 @@ class ControllerModes:
                 at,stationary=self.telemetry[name]
                 matched=self.matched[name]
                 if now-at>.5 or not stationary or matched is None or now-matched<1.:
-                    return 'active JTC is not observably settled'
+                    return JTC_SETTLING
         return ''
 
     def request(self,target,callback):

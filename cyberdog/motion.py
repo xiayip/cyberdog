@@ -29,10 +29,15 @@ START_POSITION_TOLERANCE = .002
 MAX_PATH_SPEED = .8
 MAX_PATH_ACCELERATION = 1.3
 MAX_SCALED_PATH_SPEED = 1.2
+# Inspection can raise only the wrist/head limits; other axes retain the
+# ordinary envelope, including small corrections to the held reference.
+MAX_INSPECTION_SPEED = 1.4
+MAX_INSPECTION_ACCELERATION = 6.
 # Only the isolated J4 bow may use this envelope. Zephyr's J4 model permits
 # 2.5 rad/s and 20 rad/s²; shoulder/elbow and ordinary paths stay unchanged.
 MAX_BOW_SPEED = 2.4
 MAX_BOW_ACCELERATION = 12.
+MAX_BOW_DELTA = .75
 
 
 def validate_bow_path(points, anchor):
@@ -44,7 +49,7 @@ def validate_bow_path(points, anchor):
             or any(target[i]!=anchor[i] for i in (0,1,2,4,5))):
         raise ValueError('bow may move only J4 from the held reference')
     distance=start[3]-target[3];duration=end_at-start_at
-    if not 0<distance<=.5+1e-9 or not math.isfinite(duration) or duration<=0:
+    if not 0<distance<=MAX_BOW_DELTA+1e-9 or not math.isfinite(duration) or duration<=0:
         raise ValueError('bow requires a bounded downward J4 segment')
     if (1.875*distance/duration>MAX_BOW_SPEED+1e-9
             or (10/math.sqrt(3))*distance/duration**2>MAX_BOW_ACCELERATION+1e-9):
@@ -85,7 +90,7 @@ class Motion:
                                  f'/{self.prefix}_trajectory_controller/follow_joint_trajectory')
         self.limit_scale = finite(param(node, 'motion_limit_scale', 1.), 1., 2., 'motion limit scale')
         self.inspection_acceleration = finite(param(node, 'handshake_inspection_acceleration', 2.4),
-                                              .1, 2.4, 'inspection acceleration')
+                                              .1, MAX_INSPECTION_ACCELERATION, 'inspection acceleration')
         self.path_inspection = False
         self.path_time_scale = 1.
         self.path_bow = False
@@ -229,6 +234,12 @@ class Motion:
             self.manager.call_async(ListControllers.Request()).add_done_callback(self.preflight_done)
         return True, 'accepted'
 
+    def velocity_limits(self, inspection=False, time_scale=1.):
+        limits = [min(MAX_SCALED_PATH_SPEED,.4*self.limit_scale/time_scale)]*6
+        if inspection:
+            limits[3] = limits[5] = min(MAX_INSPECTION_SPEED,.7*self.limit_scale)
+        return limits
+
     def acceleration_limits(self, inspection=False, time_scale=1.):
         limits = [.65*self.limit_scale]*6
         if inspection:
@@ -296,9 +307,10 @@ class Motion:
                 anchor = bounded_start(self.reference_pose, 'JTC reference')
                 points = self.path_factory(anchor)
                 if self.path_bow:validate_bow_path(points,anchor)
-                velocity_limits = [min(MAX_SCALED_PATH_SPEED,.4*self.limit_scale/self.path_time_scale)]*6
+                velocity_limits = self.velocity_limits(self.path_inspection,self.path_time_scale)
                 acceleration_limits = self.acceleration_limits(self.path_inspection,self.path_time_scale)
                 previous = 0.
+                last_sample = None
                 for sample in points:
                     if len(sample) == 2:
                         at, pose = sample
@@ -312,6 +324,16 @@ class Motion:
                             or any(abs(v) > limit for v, limit in zip(velocity, velocity_limits))
                             or any(abs(a) > limit for a,limit in zip(acceleration, acceleration_limits))):
                         raise ValueError('invalid or excessive trajectory sample')
+                    if self.path_inspection and last_sample is not None and len(last_sample)==len(sample)==2:
+                        # These zero-derivative endpoints describe a quintic.
+                        # Check its interior peaks too, including other axes.
+                        dt=at-last_sample[0]
+                        for a,b,vmax,amax in zip(last_sample[1],pose,velocity_limits,acceleration_limits):
+                            distance=abs(b-a)
+                            if (1.875*distance/dt>vmax+1e-9
+                                    or (10/math.sqrt(3))*distance/dt**2>amax+1e-9):
+                                raise ValueError('inspection exceeds joint velocity or acceleration envelope')
+                    last_sample = sample
                     previous = at
                     point = JointTrajectoryPoint(positions=pose, velocities=velocity,
                                                  accelerations=acceleration)

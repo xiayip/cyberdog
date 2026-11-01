@@ -16,7 +16,7 @@ from cyberdog.ball_grasp_geometry import WorldStillGate, preview_waypoints
 
 @contextmanager
 def graph(classes=(Cyberdog,),parameters=(),executor_factory=SingleThreadedExecutor):
-    args=['--ros-args','-p','mock_step_sec:=0.03','-p','ball_full_sequence:=true']
+    args=['--ros-args','-p','mock_step_sec:=0.03','-p','ball_full_sequence:=true','-p','dance_after_place:=false']
     for p in parameters:args+=['-p',p]
     rclpy.init(args=args)
     nodes=[];exe=executor_factory()
@@ -51,6 +51,12 @@ def spin(exe,seconds):
 def reset(g,e):
     assert g.command('reset')[0]
     until(e,lambda:g.state=='idle')
+
+
+def wake(g,e):
+    reset(g,e)
+    g.robot.mock_pose[2]=.05
+    until(e,lambda:g.handshake_completed,timeout=8.)
 
 
 def test_starts_paused_reset_holds_exact_pose_without_calibration_override():
@@ -107,7 +113,7 @@ def test_touch_noise_stale_samples_and_torque_baseline():
     assert d.baseline is None
 
 
-def test_ball_automatically_tracks_from_zero_pose_and_grabs_after_one_second():
+def test_ball_waits_for_handshake_then_tracks_and_grabs_after_one_second():
     with graph((Cyberdog,Senses),['mock_ball_visible:=true']) as ([g,s],e):
         stages=[];original=g.set_state;events=[];grasp_started=[]
         def state(a,b,c):
@@ -117,7 +123,10 @@ def test_ball_automatically_tracks_from_zero_pose_and_grabs_after_one_second():
         grip=g.robot.grip
         def record(closed,cb):events.append((closed,g.phase));return grip(closed,cb)
         g.robot.grip=record
-        assert g.command('reset')[0]
+        reset(g,e);spin(e,.3)
+        assert g.state=='idle' and not g.handshake_completed and not s.watch_ball
+        assert not g.enter_ball()
+        g.robot.mock_pose[2]=.05
         until(e,lambda:g.phase=='tracking')
         start=time.monotonic()
         assert g.ball_still_sec==1. and g.ball_sequence.status()['dwell_sec']==1.
@@ -146,8 +155,9 @@ def test_ball_detected_in_damping_enters_tracking_without_gesture():
 @pytest.mark.parametrize('stop',['stop','loss'])
 def test_stop_or_loss_during_approach_never_closes(stop):
     with graph((Cyberdog,Senses),['mock_ball_visible:=true','ball_still_sec:=0.5','mock_step_sec:=0.25',
-                                'grasp_blind_after_lock:=false','grasp_continue_on_loss:=false','grasp_max_attempts:=1']) as ([g,s],e):
-        g.command('reset');until(e,lambda:g.phase=='grasp_approach')
+                                'grasp_blind_after_lock:=false','grasp_continue_on_loss:=false','grasp_max_attempts:=1',
+                                'grasp_virtual_after_retries:=false']) as ([g,s],e):
+        wake(g,e);until(e,lambda:g.phase=='grasp_approach')
         if stop=='stop':g.command('stop')
         else:s.mock_ball_visible=False
         until(e,lambda:g.state=='paused')
@@ -199,14 +209,14 @@ def test_close_failure_never_lifts():
     with graph((Cyberdog,Senses),['mock_ball_visible:=true','ball_still_sec:=0.5']) as ([g,s],e):
         grip=g.robot.grip
         g.robot.grip=lambda closed,cb:(False,'close failed') if closed else grip(closed,cb)
-        g.command('reset');until(e,lambda:g.state=='paused')
+        wake(g,e);until(e,lambda:g.state=='paused')
         assert g.message=='close failed'
         assert g.ball_sequence.index==2
 
 
 def test_zero_reset_axes_remain_fixed_during_tracking():
     with graph() as ([g],e):
-        reset(g,e);g.begin_tracking();until(e,lambda:g.robot.servo)
+        reset(g,e);g.handshake_completed=True;g.begin_tracking();until(e,lambda:g.robot.servo)
         for _ in range(100):
             target=g.robot.reference[:];target[3]=.2;target[4]=.3
             assert g.robot.track(target,.025)
@@ -216,7 +226,7 @@ def test_zero_reset_axes_remain_fixed_during_tracking():
 
 def test_short_dropouts_allow_one_second_grasp_only_after_fresh_reconfirmation(monkeypatch):
     with graph() as ([g],e):
-        g.mode='ball';g.state='active';s=g.ball_sequence
+        g.mode='ball';g.state='active';g.handshake_completed=True;s=g.ball_sequence
         base=g.get_clock().now().nanoseconds*1e-9
         with monkeypatch.context() as m:
             stamp=[base]

@@ -15,7 +15,7 @@ PARAMS=['motion_backend:=trajectory','motion_enabled:=true','required_guard_node
 
 def test_ros_reset_j3_pull_lift_then_verified_damping():
     config=yaml.safe_load((Path(__file__).parents[1]/'config/cyberdog.yaml').read_text())['cyberdog']['ros__parameters']
-    pace=['motion_limit_scale','pose_speed','handshake_pose_speed','handshake_lift_time_scale',
+    pace=['motion_limit_scale','pose_speed','handshake_pose','handshake_pose_speed','handshake_lift_time_scale',
           'handshake_wrist_delta','handshake_head_offsets','handshake_head_hold_sec',
           'handshake_inspection_speed','handshake_inspection_acceleration','handshake_inspection_min_sec']
     parameters=PARAMS+[f'{name}:={config[name]}' for name in pace]
@@ -39,15 +39,15 @@ def test_ros_reset_j3_pull_lift_then_verified_damping():
         until(e,lambda:g.phase=='handshake',timeout=14.)
         poses=[list(req.trajectory.points[-1].positions) for req in r.requests[initial:]]
         assert len(poses)==3
-        assert poses[0][:3]==[g.home[0],0.,.06] and poses[0][3:]==[.40,0.,0.]
-        assert poses[1][:5]==poses[0][:5] and poses[1][5]==.25
-        assert g.handshake_speed==.6 and g.head_hold==.08 and g.inspection_speed==.8
-        assert g.inspection_minimum==.65
+        assert poses[0][:3]==[g.home[0],0.,.06] and poses[0][3:]==[.55,0.,0.]
+        assert poses[1][:5]==poses[0][:5] and poses[1][5]==.4
+        assert g.handshake_speed==.6 and g.head_hold==.04 and g.inspection_speed==1.4
+        assert g.inspection_minimum==.45 and g.lift==[-1.5707,.6,.9,0.,0.,0.]
         assert g.lift_time_scale==.5
         for index,request in enumerate(r.requests[initial:]):
             velocity,acceleration=peak_motion(request)
-            assert .24<velocity<=(.8 if index<2 else 1.2)+1e-8
-            assert acceleration<=(2.4 if index<2 else 4*.65*g.robot.motion.limit_scale)+1e-8
+            assert .24<velocity<=(1.4 if index<2 else 1.2)+1e-8
+            assert acceleration<=(6. if index<2 else 4*.65*g.robot.motion.limit_scale)+1e-8
             first,last=request.trajectory.points
             old_acc=[.975]*6
             if index<2:old_acc[3]=old_acc[5]=1.5

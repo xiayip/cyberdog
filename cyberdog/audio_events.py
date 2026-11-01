@@ -24,15 +24,24 @@ class AudioEvents:
         self.last_cue={};self.movement=DampingMovementDetector();self.handshake_next=0.
         self.emit('A1',replace=True)
 
-    def emit(self,*events,replace=False):
+    def emit(self,*events,replace=False,music=None):
         if not self.enabled:return
         self.sequence+=1
         try:
-            publish(self.pub,dict(schema_version=1,session=self.session,sequence=self.sequence,
-                stamp=self.g.get_clock().now().nanoseconds*1e-9,events=list(events),replace=replace))
+            message=dict(schema_version=1,session=self.session,sequence=self.sequence,
+                stamp=self.g.get_clock().now().nanoseconds*1e-9,events=list(events),replace=replace)
+            if music is not None:message['music']=music
+            publish(self.pub,message)
         except Exception as exc:
             self.enabled=False
             self.g.get_logger().warning('音频事件发送失败，停用声音：'+str(exc))
+
+    def start_dance(self,metadata):
+        if not self.enabled:return
+        self.g.get_logger().info(f'请求舞蹈音乐：{metadata["actual_bpm"]:.1f} BPM，'
+            f'{metadata["duration"]:.1f} 秒，音频订阅数 {self.pub.get_subscription_count()}')
+        self.emit(replace=True,music=dict(bpm=metadata['actual_bpm'],duration=metadata['duration'],
+            core_start=metadata['core_start'],core_end=metadata['core_end']))
 
     def limited(self,event,now,interval):
         if now-self.last_cue.get(event,-1e9)<interval:return

@@ -13,8 +13,10 @@ from .robot import Robot
 from .ball_sequence import BallSequence
 from .ball_taken import BallTakenReaction
 from .ball_prediction import BallPrediction
+from .tracking import add_velocity_feedforward
 from .touch import TouchDetector, DampingMovementDetector
 from .audio_events import AudioEvents
+from .dance import Dance
 
 
 class Cyberdog(Node):
@@ -35,20 +37,23 @@ class Cyberdog(Node):
         self.lift_time_scale=finite(param(self,'handshake_lift_time_scale',.5),.5,1.,'handshake lift time scale')
         if self.handshake_speed/self.lift_time_scale>MAX_SCALED_PATH_SPEED:
             raise ValueError('scaled handshake speed exceeds 1.2 rad/s')
+        inspection_speed_limit=max(self.robot.motion.velocity_limits(inspection=True))
         self.inspection_speed=finite(param(self,'handshake_inspection_speed',min(.8,handshake_speed_limit)),
-            .01,handshake_speed_limit,'inspection speed exceeds ordinary motion envelope')
+            .01,inspection_speed_limit,'inspection speed exceeds wrist/head motion envelope')
         self.inspection_minimum=finite(param(self,'handshake_inspection_min_sec',.65),.2,1.,'inspection minimum duration')
         self.head_poses=[];self.head_hold_until=0.
         self.damping_movement=DampingMovementDetector(
             finite(param(self,'damping_movement_threshold',.04),.005,.3,'damping movement threshold'),
             finite(param(self,'damping_movement_dwell_sec',.15),.05,1.,'damping movement dwell'),
             finite(param(self,'damping_movement_settle_sec',.5),0.,3.,'damping settling time'))
+        self.handshake_open_position=finite(param(self,'handshake_gripper_open_position',.6),0.,1.,'handshake gripper open position')
         self.handshake_grip_position=finite(param(self,'handshake_gripper_position',.7),0.,1.,'handshake gripper position')
         self.handshake_gripper_enabled=param(self,'handshake_gripper_enabled',False)
         self.handshake_grip_sent=False
         self.speed=finite(param(self,'pose_speed',.36),.01,.4,'pose speed')
         self.grasp_enabled=param(self,'grasp_enabled',True)
         self.ball_still_sec=finite(param(self,'ball_still_sec',1.),.5,10.,'ball dwell')
+        self.ball_min_score=finite(param(self,'ball_min_score',.35),.1,.95,'ball confidence threshold')
         self.gain=finite(param(self,'ball_tracking_gain',2.4),.1,3.,'tracking gain')
         self.touch=TouchDetector(param(self,'touch_signal','either'),
             finite(param(self,'j3_position_threshold',.03),.01,.3,'J3 position threshold'),
@@ -56,6 +61,7 @@ class Cyberdog(Node):
             finite(param(self,'touch_dwell_sec',.25),.1,2.,'touch dwell'))
         self.state,self.mode,self.phase,self.message='paused','','startup','点击复位开始'
         self.outcome=''
+        self.handshake_completed=False
         self.round_id=self.generation=0
         self.sample=None;self.anchor=None
         self.sensor_session=None;self.sensor_sequence=-1
@@ -68,9 +74,10 @@ class Cyberdog(Node):
         self.create_subscription(String,'/cyberdog/observation',self.observation,1)
         self.create_subscription(String,'/cyberdog/command',lambda m:self.command(m.data),10)
         self.command_services=[self.create_service(Trigger,'/cyberdog/'+name,
-            lambda req,res,n=name:self.service(n,res)) for name in ('reset','stop')]
+            lambda req,res,n=name:self.service(n,res)) for name in ('reset','stop','dance')]
         self.ball_sequence=BallSequence(self)
         self.ball_taken=BallTakenReaction(self)
+        self.dance=Dance(self)
         self.audio=AudioEvents(self)
         self.create_timer(.025,self.tick)
         self.create_timer(.2,self.publish_state)
@@ -80,15 +87,22 @@ class Cyberdog(Node):
         publish(self.pub,dict(schema_version=2,state=self.state,mode=self.mode,phase=self.phase,
             message=self.message,outcome=self.outcome,round_id=self.round_id,
             mock=self.robot.mock,motion_enabled=self.robot.motion.enabled,
-            motion_busy=self.robot.busy or self.ball_sequence.busy or self.ball_taken.busy,
-            controller_mode=self.robot.modes.mode,watch_ball=self.state!='paused'))
+            motion_busy=self.robot.busy or self.ball_sequence.busy or self.ball_taken.busy or self.dance.busy,
+            controller_mode=self.robot.modes.mode,
+            watch_ball=self.handshake_completed and self.state!='paused' and self.mode!='dance'))
         publish(self.telemetry,dict(touch=self.touch.status(),ball=self.ball_sequence.status(),
+            target_velocity=self.ball_sequence.velocity.status(self.get_clock().now().nanoseconds*1e-9),
+            coordinated_tracking=self.ball_sequence.coordination.status(self.get_clock().now().nanoseconds*1e-9),
+            dance=self.dance.status(),
+            handshake_completed=self.handshake_completed,
             damping_movement=self.damping_movement.status(),gripper_target=self.robot.grip_target,
             gripper_state=self.robot.fresh_gripper_position(),ball_taken_threshold=self.ball_taken.threshold,
             handshake_gripper_enabled=self.handshake_gripper_enabled))
 
     def set_state(self,state,phase,message):
         self.state,self.phase,self.message=state,phase,message
+        if phase!='tracking':
+            self.ball_sequence.velocity.reset('not tracking');self.ball_sequence.coordination.reset('not tracking')
         self.audio.transition(state,phase,self.ball_sequence.attempts)
         self.get_logger().info(f'{state}/{phase}: {message}')
         self.publish_state()
@@ -99,7 +113,8 @@ class Cyberdog(Node):
 
     def command(self,name):
         if name=='stop':self.pause('已暂停并保持');return True,'已暂停'
-        if name!='reset':return False,'仅支持 reset / stop'
+        if name=='dance':return self.dance.request()
+        if name!='reset':return False,'仅支持 reset / stop / dance'
         if self.state=='resetting':return False,'正在复位'
         self.pause('停止当前动作，准备复位')
         self.mode='';self.outcome='';self.round_id+=1
@@ -146,7 +161,7 @@ class Cyberdog(Node):
 
     def idle(self):
         self.mode='';self.touch.reset();self.touch_until=0.
-        self.set_state('idle','holding','保持复位姿态；掰动 J3 握手，看到毛线球自动追踪')
+        self.set_state('idle','holding','保持复位姿态；请先掰动 J3 进入握手，再开始追踪毛线球')
 
     def handshake(self):
         self.touch_until=0.;self.generation+=1;self.mode='handshake'
@@ -179,6 +194,23 @@ class Cyberdog(Node):
         self.issue(lambda cb:self.robot.mode('damping',cb),self.damping_ready)
 
     def damping_ready(self):
+        if self.robot.modes.mode!='damping':
+            self.pause('阻尼模式未确认，未发送握手夹爪指令');return
+        # Enter once, after the arm mode switch is confirmed. This opening is
+        # independent of the optional movement-triggered 0.7 close command.
+        if self.robot.mock or self.robot.gripper_enabled:
+            position=self.handshake_open_position
+            self.set_state('transition','handshake_opening',f'已进入阻尼，夹爪调整至 {position:g}')
+            self.issue(lambda cb:self.robot.grip_position(position,cb),self.handshake_ready)
+        else:
+            self.handshake_ready()
+
+    def handshake_ready(self):
+        if self.robot.modes.mode!='damping':
+            self.pause('阻尼模式未确认，未解锁毛线球追踪');return
+        self.handshake_completed=True
+        # Observations captured during reset/inspection belong to the old round.
+        self.round_id+=1;self.ball_seen=0.;self.sample=None
         self.damping_movement.reset();self.handshake_grip_sent=False
         grip=f'掰动关节夹爪收至 {self.handshake_grip_position:g}' if self.handshake_gripper_enabled else '自动闭爪已关闭'
         self.set_state('active','handshake',f'阻尼握手中；{grip}，看到毛线球自动追踪')
@@ -196,6 +228,7 @@ class Cyberdog(Node):
         self.issue(lambda cb:self.robot.grip_position(position,cb),gripped)
 
     def enter_ball(self):
+        if not self.handshake_completed:return False
         self.generation+=1;self.round_id+=1;self.mode='ball';self.touch_until=0.
         self.ball_sequence.reset_attempts()
         self.set_state('transition','ball_entering','发现毛线球，切换位置追踪')
@@ -217,18 +250,23 @@ class Cyberdog(Node):
         self.issue(lambda cb:self.robot.grip(False,cb),self.begin_tracking)
 
     def begin_tracking(self):
+        if not self.handshake_completed:return False
         self.issue(lambda cb:self.robot.mode('position',cb),self.tracking_started)
 
     def tracking_started(self):
         self.robot.set_tracking_profile(True)
         self.anchor=self.robot.current;self.sample=None;self.ball_prediction.reset()
-        self.ball_sequence.gate.reset();self.ball_sequence.stable=False
+        self.ball_sequence.velocity.reset()
+        self.ball_sequence.coordination.reset()
+        self.ball_sequence.reset_tracking_gate()
         self.ball_sequence.target=None;self.ball_sequence.pending.clear()
         self.ball_sequence.frozen=None;self.ball_sequence.restart_count()
         retry=f'；准备第 {self.ball_sequence.attempts+1}/{self.ball_sequence.max_attempts} 次尝试' if self.ball_sequence.attempts else ''
-        self.set_state('active','tracking',f'跟踪毛线球；空间位置稳定 {self.ball_still_sec:g} 秒后抓取'+retry)
+        self.set_state('active','tracking',f'跟踪毛线球；空间位置稳定 {self.ball_sequence.gate.dwell:g} 秒后抓取'+retry)
 
     def observation(self,msg):
+        if not self.handshake_completed:
+            self.sample=None;self.ball_seen=0.;return
         try:
             d=json.loads(msg.data)
             if not isinstance(d,dict) or d.get('schema_version')!=1:return
@@ -241,6 +279,8 @@ class Cyberdog(Node):
             if session==self.sensor_session and sequence<=self.sensor_sequence:return
             if session!=self.sensor_session:
                 self.ball_prediction.reset();self.ball_sequence.gate.reset('new_sensor_session')
+                self.ball_sequence.velocity.reset('new sensor session')
+                self.ball_sequence.coordination.reset('new sensor session')
                 self.ball_sequence.stable=False;self.ball_sequence.pending.clear()
             self.sensor_session,self.sensor_sequence=session,sequence
             ball=d.get('ball')
@@ -248,7 +288,7 @@ class Cyberdog(Node):
                 self.sample=None;self.ball_seen=0.;self.ball_sequence.observe(dict(d,ball=None));return
             x=finite(ball['x'],-1.,1.,'x');y=finite(ball['y'],-1.,1.,'y')
             w=finite(ball['width'],.001,2.,'width');h=finite(ball['height'],.001,2.,'height')
-            finite(ball['score'],.7,1.,'score')
+            finite(ball['score'],self.ball_min_score,1.,'score')
             self.ball_seen=time.monotonic()-age
             if self.mode!='ball' or self.state!='active':return
             self.audio.seen_ball(self.ball_seen)
@@ -264,16 +304,30 @@ class Cyberdog(Node):
             self.ball_sequence.maybe_begin();return
         if self.sample is None or now-self.sample.received_at>.15:
             self.ball_prediction.reset()
+            self.ball_sequence.velocity.invalidate('image unavailable')
+            self.ball_sequence.coordination.reset('image unavailable')
             self.robot.track(self.robot.reference,dt)
             return
         error=self.ball_prediction.predict(self.get_clock().now().nanoseconds*1e-9)
         if error is None:error=(self.sample.error_x,self.sample.error_y)
+        stamp=self.get_clock().now().nanoseconds*1e-9
+        lower,upper=self.robot.tracking_bounds();speeds,_=self.robot.tracking_limits()
+        velocity=self.ball_sequence.velocity
+        target=self.ball_sequence.coordination.target(stamp,error,self.robot.reference,self.anchor,
+            lower,upper,speeds,dt,self.gain,velocity.status(stamp)['world_mps'],velocity.gain,velocity.max_speed)
+        if target is not None:
+            self.robot.track(target,dt);return
         target=servo_target(self.robot.reference,self.anchor,LOWER,UPPER,4,3,
             *error,self.gain,self.gain,self.robot.tracking_speed,dt,-1.,-1.,self.robot.tracking_yaw_range,self.robot.tracking_pitch_range,.08)
+        target=add_velocity_feedforward(self.robot.reference,target,
+            self.ball_sequence.velocity.output(self.get_clock().now().nanoseconds*1e-9),dt,
+            self.robot.tracking_speed,LOWER,UPPER)
         self.robot.track(target,dt)
 
     def pause(self,message):
         self.generation+=1;self.pending=None
+        self.handshake_completed=False
+        self.dance.stop()
         self.ball_taken.stop()
         self.head_poses=[];self.head_hold_until=0.;self.damping_movement.reset()
         self.ball_sequence.stop();self.robot.stop()
@@ -285,6 +339,7 @@ class Cyberdog(Node):
         if self.robot.fault and self.state not in ('paused','resetting'):
             self.pause(self.robot.fault);return
         self.audio.tick(now)
+        self.dance.tick()
         if self.state=='resetting':
             if now>self.reset_deadline:self.pause('复位未开始：动作未停止或关节未稳定');return
             if (not self.robot.busy and not self.ball_sequence.busy and self.robot.stationary()
@@ -302,7 +357,7 @@ class Cyberdog(Node):
         if self.state=='transition' and self.phase=='head_looking' and now>=self.head_hold_until:
             self.inspect_head()
         if self.state=='active' and self.phase=='handshake':self.handshake_tick(now)
-        eligible=self.state=='idle' or (self.state=='active' and self.phase=='handshake')
+        eligible=self.handshake_completed and (self.state=='idle' or (self.state=='active' and self.phase=='handshake'))
         if eligible and not self.robot.busy and now>=self.ball_retry and now-self.ball_seen<=.15:
             if self.robot.stationary() and self.robot.modes.would_pass()=='':
                 self.enter_ball();return
@@ -319,7 +374,7 @@ class Cyberdog(Node):
     def prepare_shutdown(self):self.pause('shutdown')
 
     def destroy_node(self):
-        self.ball_sequence.destroy();self.robot.destroy()
+        self.dance.destroy();self.ball_sequence.destroy();self.robot.destroy()
         return super().destroy_node()
 
 

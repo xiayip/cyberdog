@@ -13,7 +13,7 @@ from cyberdog.audio_node import AudioNode
 from cyberdog.audio_player import AudioPlayer,load_sounds
 from cyberdog.behavior import Cyberdog
 from cyberdog.senses import Senses
-from test_behavior import graph,until,spin
+from test_behavior import graph,until,spin,wake
 from test_grasp_retry import lock_target
 
 DIRECTORY=Path(__file__).parents[1]/'audio'
@@ -208,7 +208,7 @@ def test_behavior_emits_retry_exhaustion_but_fault_and_manual_stop_are_silent():
     with graph() as ([g],e):
         frames=[];g.audio.pub=SimpleNamespace(publish=lambda msg:frames.append(json.loads(msg.data)))
         seq=lock_target(g);seq.attempts=seq.max_attempts;seq.fail('path incomplete',retryable=True)
-        assert frames[-1]['events']==['D3'] and g.state=='paused'
+        assert frames[-1]['events']==['D3'] and g.phase=='virtual_wait'
         g.command('stop');assert frames[-1]['events']==[]
         g.command('reset');until(e,lambda:g.state=='idle')
         assert any(f['events']==['E4'] for f in frames)
@@ -218,7 +218,7 @@ def test_behavior_emits_retry_exhaustion_but_fault_and_manual_stop_are_silent():
 def test_real_behavior_flow_publishes_silence_at_lock_and_sound_at_close_completion():
     with graph((Cyberdog,Senses),['mock_ball_visible:=true','ball_still_sec:=0.5']) as ([g,s],e):
         frames=[];g.audio.pub=SimpleNamespace(publish=lambda msg:frames.append((g.phase,json.loads(msg.data))))
-        g.command('reset');until(e,lambda:g.phase=='complete',timeout=6.)
+        wake(g,e);until(e,lambda:g.phase=='complete',timeout=6.)
         assert any(phase=='grasp_settling' and f['events']==[] and f['replace'] for phase,f in frames)
         assert [event for _,f in frames for event in f['events'] if event in ('C5','C6')]==['C5','C6']
         g.command('stop');assert frames[-1][1]['events']==[]

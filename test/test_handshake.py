@@ -68,7 +68,7 @@ def test_mock_damping_motion_commands_point_seven_once_and_keeps_damping():
         reset(g,e);g.robot.mock_pose[2]=.05
         until(e,lambda:g.phase=='handshake')
         until(e,lambda:g.damping_movement.armed)
-        assert not g.handshake_grip_sent and g.robot.grip_target==0.
+        assert not g.handshake_grip_sent and g.robot.grip_target==.6
         g.robot.mock_pose[4]+=.06
         until(e,lambda:g.handshake_grip_sent and not g.robot.grip_busy)
         assert g.robot.grip_target==.7 and g.robot.modes.mode=='damping'
@@ -94,23 +94,58 @@ class FakeGripper(Node):
 def test_real_ros_damping_auto_grip_is_disabled_by_default_and_can_be_reenabled(enabled):
     params=PARAMS+['gripper_enabled:=true']+(['handshake_gripper_enabled:=true'] if enabled else [])
     with graph((Cyberdog,FakeGameRobot,FakeGripper),params,executor) as ([g,r,gripper],e):
+        modes=[];original=g.robot.grip_position
+        def record(*args,**kwargs):
+            modes.append(g.robot.modes.mode);return original(*args,**kwargs)
+        g.robot.grip_position=record
         g.command('reset');until(e,lambda:g.state=='idle',timeout=8.)
+        assert not gripper.requests  # Reset/holding does not open the gripper.
         r.position[2]=.06;until(e,lambda:g.phase=='handshake',timeout=14.)
         if enabled:until(e,lambda:g.damping_movement.armed)
         else:spin(e,.8)
-        assert not gripper.requests
+        assert [list(req.command.position) for req in gripper.requests]==[[.6]]
+        assert modes==['damping'] and g.robot.grip_target==.6
         requests=len(r.requests);switches=len(r.switch_requests)
         r.position[1]+=.06
         if enabled:
-            until(e,lambda:bool(gripper.requests) and not g.robot.grip_busy)
-            assert len(gripper.requests)==1
-            assert list(gripper.requests[0].command.position)==[.7]
+            until(e,lambda:len(gripper.requests)==2 and not g.robot.grip_busy)
+            assert [list(req.command.position) for req in gripper.requests]==[[.6],[.7]]
+            assert modes==['damping','damping']
         else:
             spin(e,.5)
-            assert not gripper.requests and not g.handshake_grip_sent and not g.damping_movement.armed
+            assert len(gripper.requests)==1 and not g.handshake_grip_sent and not g.damping_movement.armed
             assert '自动闭爪已关闭' in g.message
         assert g.robot.modes.mode=='damping' and len(r.switch_requests)==switches
         assert len(r.requests)==requests and not r.direct_commands
+
+
+@pytest.mark.parametrize('command',['stop','reset'])
+def test_late_open_completion_cannot_resume_handshake_after_stop_or_reset(command):
+    with graph() as ([g],e):
+        callbacks=[]
+        def delayed(position,callback,**kwargs):
+            assert position==.6 and g.robot.modes.mode=='damping'
+            callbacks.append(callback);return True,'accepted'
+        g.robot.grip_position=delayed
+        reset(g,e);g.robot.mock_pose[2]=.05
+        until(e,lambda:g.phase=='handshake_opening')
+        assert len(callbacks)==1
+        g.command(command);callbacks[0](True,'late arrival')
+        if command=='reset':until(e,lambda:g.state=='idle')
+        else:spin(e,.15)
+        assert g.phase==('holding' if command=='reset' else 'stopped')
+        assert len(callbacks)==1 and not g.handshake_grip_sent
+
+
+def test_partial_handshake_open_stall_pauses_without_claiming_ready():
+    with graph(parameters=['mock_step_sec:=0.2']) as ([g],e):
+        reset(g,e);g.robot.mock_pose[2]=.05
+        until(e,lambda:g.phase=='handshake_opening' and g.robot.grip_busy)
+        result=Future();result.set_result(SimpleNamespace(status=4,
+            result=SimpleNamespace(reached_goal=False,stalled=True)))
+        g.robot.grip_result(result);spin(e,.3)
+        assert g.state=='paused' and g.phase=='stopped' and g.robot.modes.mode=='damping'
+        assert g.robot.grip_target==.6 and not g.robot.grip_busy
 
 
 @pytest.mark.parametrize('value',[-.1,1.1,float('nan'),True])

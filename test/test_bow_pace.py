@@ -9,7 +9,7 @@ from test_behavior import graph
 from test_joint_boundary import preflight
 
 
-@pytest.mark.parametrize('distance',[.005,.05,.25,.45,.5])
+@pytest.mark.parametrize('distance',[.005,.05,.25,.45,.5,.75])
 def test_threefold_bow_keeps_geometry_and_checks_interior_quintic_extrema(distance):
     start=[.2,.6,.8,.3,-.1,0.];target=start[:];target[3]-=distance
     previous=path_points(start,[target],.6,.65,[1.3]*6)
@@ -31,11 +31,15 @@ def test_submission_rejects_inappropriate_fast_bow_even_with_zero_endpoint_deriv
     points=bow_points(start,target,.6,[1.3]*6)
     if change=='other_joint':target[0]+=.01
     elif change=='up':target[3]=start[3]+.45
-    elif change=='excess_distance':target[3]=start[3]-.51
+    elif change=='excess_distance':target[3]=start[3]-.76
     elif change=='excess_speed':points=[(.05,start),(.15,target)]
     elif change=='excess_acceleration':points=[(.05,start),(.5,target)]
     elif change=='derivatives':points=[(t,q,[0.]*6,[0.]*6) for t,q in points]
     if change in ('other_joint','up','excess_distance'):points=[(points[0][0],start),(points[1][0],target)]
+    if change=='excess_distance':
+        # Keep speed/acceleration well below their envelopes so only the new
+        # amplitude bound can reject this segment.
+        points=[(.2,start),(2.,target)]
     m,sent,outcomes=preflight(start,start,lambda _:points,bow=True)
     assert not sent and not m.busy and not m.path_bow
     assert outcomes and not outcomes[0][0]

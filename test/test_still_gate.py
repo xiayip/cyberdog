@@ -78,7 +78,7 @@ def test_a_long_gap_or_a_new_position_cannot_inherit_old_progress():
 
 def test_short_dropout_survives_timer_but_needs_fresh_reconfirmation(monkeypatch):
     with graph() as ([g],executor):
-        g.mode='ball';g.state='active';seq=g.ball_sequence
+        g.mode='ball';g.state='active';g.handshake_completed=True;seq=g.ball_sequence
         base=g.get_clock().now().nanoseconds*1e-9;stamp=[base]
         monkeypatch.setattr(g,'get_clock',lambda:SimpleNamespace(now=lambda:SimpleNamespace(nanoseconds=round(stamp[0]*1e9))))
         for i in range(7):
@@ -100,7 +100,7 @@ def test_short_dropout_survives_timer_but_needs_fresh_reconfirmation(monkeypatch
 @pytest.mark.parametrize('reconfirm',[True,False])
 def test_looser_gap_handles_capture_latency_but_never_triggers_without_fresh_fit(reconfirm,monkeypatch):
     with graph() as ([g],executor):
-        g.mode='ball';g.state='active';seq=g.ball_sequence
+        g.mode='ball';g.state='active';g.handshake_completed=True;seq=g.ball_sequence
         base=g.get_clock().now().nanoseconds*1e-9;now=[base]
         monkeypatch.setattr(g,'get_clock',lambda:SimpleNamespace(now=lambda:SimpleNamespace(nanoseconds=round(now[0]*1e9))))
         for t in (0.,.2,.4):
@@ -123,7 +123,7 @@ def test_looser_gap_handles_capture_latency_but_never_triggers_without_fresh_fit
 @pytest.mark.parametrize('fit_error',[True,False])
 def test_depth_fit_failure_preserves_progress_but_calibration_error_resets(fit_error,monkeypatch):
     with graph() as ([g],executor):
-        g.mode='ball';g.state='active';seq=g.ball_sequence
+        g.mode='ball';g.state='active';g.handshake_completed=True;seq=g.ball_sequence
         base=g.get_clock().now().nanoseconds*1e-9;now=base+.7
         monkeypatch.setattr(g,'get_clock',lambda:SimpleNamespace(now=lambda:SimpleNamespace(nanoseconds=round(now*1e9))))
         for i in range(7):seq.accept(dict(center=[.3,0.,.1],radius=.025),base+i*.1)
@@ -144,7 +144,7 @@ def test_depth_fit_failure_preserves_progress_but_calibration_error_resets(fit_e
 
 def test_ready_fit_locks_before_a_dropout_can_erase_it_between_control_ticks(monkeypatch):
     with graph() as ([g],executor):
-        g.mode='ball';g.state='active';g.phase='tracking';g.robot.servo=True
+        g.mode='ball';g.state='active';g.handshake_completed=True;g.phase='tracking';g.robot.servo=True
         seq=g.ball_sequence;base=g.get_clock().now().nanoseconds*1e-9;now=[base]
         monkeypatch.setattr(g,'get_clock',lambda:SimpleNamespace(now=lambda:SimpleNamespace(nanoseconds=round(now[0]*1e9))))
         for i in range(11):
@@ -162,13 +162,14 @@ def test_ready_fit_locks_before_a_dropout_can_erase_it_between_control_ticks(mon
         assert not seq.running and seq.frozen is None and seq.gate.elapsed==0.
 
 
-@pytest.mark.parametrize('block',['paused','transition','retry','servo_off','busy','fault','stale'])
+@pytest.mark.parametrize('block',['paused','transition','retry','servo_off','busy','fault','stale','before_handshake'])
 def test_qualifying_fit_cannot_start_outside_available_tracking(block,monkeypatch):
     with graph() as ([g],executor):
-        g.mode='ball';g.state='active';g.phase='tracking';g.robot.servo=True
+        g.mode='ball';g.state='active';g.handshake_completed=True;g.phase='tracking';g.robot.servo=True
         seq=g.ball_sequence;base=g.get_clock().now().nanoseconds*1e-9;now=[base]
         monkeypatch.setattr(g,'get_clock',lambda:SimpleNamespace(now=lambda:SimpleNamespace(nanoseconds=round(now[0]*1e9))))
         if block in ('paused','transition'):g.state=block
+        elif block=='before_handshake':g.handshake_completed=False
         elif block=='retry':g.phase='grasp_retry_wait'
         elif block=='servo_off':g.robot.servo=False
         elif block=='busy':g.robot.sequence_motion_busy=True

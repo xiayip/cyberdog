@@ -12,7 +12,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy
 from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import String
-from .common import STATE_QOS, param, publish, run
+from .common import STATE_QOS, finite, param, publish, run
 
 
 def detect_ball(bgr,hsv_low,hsv_high):
@@ -51,6 +51,7 @@ class Senses(Node):
         self.ball_template_path=param(self,'ball_template_path',str(Path(get_package_share_directory('cyberdog'))/'config/rope-ball-template.png'))
         self.ball_yolo_path=param(self,'ball_yolo_path',str(Path(get_package_share_directory('cyberdog'))/'models/cyberdog-rope-yoloe.pt'))
         self.ball_yolo_device=param(self,'ball_yolo_device','0')
+        self.ball_min_score=finite(param(self,'ball_min_score',.35),.1,.95,'ball confidence threshold')
         self.ball_yolo=None
         self.ball_template=None
         self.ball_context=None
@@ -118,7 +119,7 @@ class Senses(Node):
             if self.ball_detector=='yoloe':
                 if self.ball_yolo is None:
                     from .ball_yolo import YoloBall
-                    self.ball_yolo=YoloBall(self.ball_yolo_path,self.ball_yolo_device)
+                    self.ball_yolo=YoloBall(self.ball_yolo_path,self.ball_yolo_device,self.ball_min_score)
                 result['ball']=self.ball_yolo.detect(frame)
             elif self.ball_detector=='template':
                 if self.ball_template is None:

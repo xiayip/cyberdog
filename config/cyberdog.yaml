@@ -14,10 +14,17 @@ cyberdog:
     - 0.03
     mock_step_sec: 0.3
     ball_velocity_feedforward: true
+    ball_target_feedforward: true
+    ball_target_feedforward_gain: 0.85
+    ball_target_feedforward_max_speed: 0.6
     ball_tracking_speed: 1.2
     ball_tracking_acceleration: 2.4
     ball_tracking_yaw_range: 1.5
     ball_tracking_pitch_range: 1.5
+    ball_multijoint_tracking: true
+    ball_tracking_arm_ranges: [0.6, 0.3, 0.35]
+    ball_tracking_arm_speed: 0.45
+    ball_tracking_arm_acceleration: 1.0
     gripper_action: /zephyr_arm_gripper_controller/gripper_cmd
     gripper_joint: omni_picker_finger_joint
     trajectory_action: /zephyr_arm_trajectory_controller/follow_joint_trajectory
@@ -38,35 +45,44 @@ cyberdog:
     handshake_pose:
     - -1.5707
     - 0.6
-    - 0.8
+    - 0.9
     - 0.0
     - 0.0
     - 0.0
-    handshake_wrist_delta: 0.40
-    handshake_head_offsets: [0.25]
-    handshake_head_hold_sec: 0.08
+    handshake_wrist_delta: 0.55
+    handshake_head_offsets: [0.40]
+    handshake_head_hold_sec: 0.04
     handshake_pose_speed: 0.6
     handshake_lift_time_scale: 0.5  # Final lift: half duration, effective peak speed 1.2 rad/s.
-    handshake_inspection_speed: 0.8
-    handshake_inspection_acceleration: 2.4
-    handshake_inspection_min_sec: 0.65
+    handshake_inspection_speed: 1.4
+    handshake_inspection_acceleration: 6.0
+    handshake_inspection_min_sec: 0.45
     damping_movement_threshold: 0.04
     damping_movement_dwell_sec: 0.15
     damping_movement_settle_sec: 0.5
+    handshake_gripper_open_position: 0.6
     handshake_gripper_position: 0.7
     handshake_gripper_enabled: false
+    dance_pose: [0.0, 0.6, 0.9, 0.0, 0.0, 0.0]
+    dance_bpm: 90.0
+    dance_amplitude: 1.0
+    dance_after_place: true
     pose_speed: 0.36
     touch_signal: either
     j3_position_threshold: 0.03
     j3_torque_threshold: 1.0
     touch_dwell_sec: 0.25
     ball_still_sec: 1.0
+    ball_min_score: 0.35
+    ball_retry_still_sec: 0.5
     ball_still_tolerance_m: 0.04
     ball_still_max_gap_sec: 1.5
     ball_full_sequence: true
     grasp_blind_after_lock: true
     grasp_continue_on_loss: true
     grasp_max_attempts: 3
+    grasp_virtual_after_retries: true
+    grasp_virtual_reach_m: 0.05
     grasp_retry_delay_sec: 1.0
     grasp_attempt_timeout_sec: 120.0
     grasp_joint_speed: 0.7
@@ -76,7 +92,7 @@ cyberdog:
     gripper_close_speed: 0.6
     gripper_close_position: 0.95
     grasp_taken_threshold: 0.92
-    grasp_taken_bow_delta: 0.45
+    grasp_taken_bow_delta: 0.75
     grasp_taken_bow_speed: 0.6
     grasp_taken_bow_speed_scale: 3.0
     gripper_open_speed: 0.3
@@ -96,8 +112,11 @@ cyberdog_audio:
     audio_server: tcp:127.0.0.1:4713
     audio_device: ''  # Follow the desktop's default output, including Bluetooth.
     audio_volume: 0.7
+    dance_music_enabled: true
+    dance_music_volume: 0.7
 cyberdog_senses:
   ros__parameters:
     ball_detector: yoloe
+    ball_min_score: 0.35
     image_topic: /camera/color/image_raw/compressed
     mock_ball_visible: false

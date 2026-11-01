@@ -2,7 +2,7 @@
 import math
 from ghost_game_orchestrator.mock_trajectory import minimum_quintic_duration
 from .common import finite
-from .motion import JOINTS, LOWER, UPPER, MAX_PATH_SPEED, bounded_start, validate_bow_path
+from .motion import JOINTS, LOWER, UPPER, MAX_PATH_SPEED, MAX_INSPECTION_SPEED, bounded_start, validate_bow_path
 
 
 def pose(value):
@@ -24,11 +24,18 @@ def inspection_poses(start,wrist_delta,head_offsets):
     return wrist,heads
 
 
-def path_points(start, targets, speed=.12, minimum=1., acceleration=None, *, time_scale=1.):
+def path_points(start, targets, speed=.12, minimum=1., acceleration=None, *, time_scale=1., velocity_limits=None):
     start = pose(start)
     time_scale=finite(time_scale,.5,1.,'path time scale')
-    if not targets or not 0 < speed <= MAX_PATH_SPEED or not math.isfinite(minimum) or minimum < .2:
+    speed_limits=[MAX_PATH_SPEED]*6
+    if velocity_limits is not None:
+        caps=[MAX_PATH_SPEED]*6;caps[3]=caps[5]=MAX_INSPECTION_SPEED
+        if not isinstance(velocity_limits,(list,tuple)) or len(velocity_limits)!=6:
+            raise ValueError('invalid joint velocity limits')
+        speed_limits=[finite(v,.01,cap,'joint velocity limit') for v,cap in zip(velocity_limits,caps)]
+    if not targets or not 0 < speed <= max(speed_limits) or not math.isfinite(minimum) or minimum < .2:
         raise ValueError('invalid path settings')
+    speed_limits=[min(speed,limit) for limit in speed_limits]
     if acceleration is not None:
         limits=list(acceleration) if isinstance(acceleration,(list,tuple)) else [acceleration]*6
         if len(limits)!=6 or any(isinstance(a,bool) or not isinstance(a,(int,float))
@@ -37,7 +44,7 @@ def path_points(start, targets, speed=.12, minimum=1., acceleration=None, *, tim
     points, elapsed, previous = [(.2, start)], .2, start
     for target in targets:
         target = pose(target)
-        duration=minimum_quintic_duration(previous, target, [speed]*6, minimum)
+        duration=minimum_quintic_duration(previous, target, speed_limits, minimum)
         if acceleration is not None:
             # Zero endpoint velocity/acceleration gives a quintic segment whose
             # peak acceleration is (10/sqrt(3))*distance/duration**2.

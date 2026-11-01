@@ -16,6 +16,16 @@ def rotation(q):
                      [2*(x*z-y*w),2*(y*z+x*w),1-2*(x*x+y*y)]])
 
 
+def virtual_grasp_waypoints(position, quaternion, reach=.05):
+    """One bounded TCP +Z air grasp and a return to the measured starting TCP."""
+    start=np.asarray(position,dtype=float)
+    if start.shape!=(3,) or not np.isfinite(start).all():raise ValueError('invalid virtual grasp start')
+    if not math.isfinite(reach) or not .01<=reach<=.08:raise ValueError('invalid virtual grasp reach')
+    end=start+rotation(quaternion)@np.array([0.,0.,reach])
+    return [dict(stage=stage,position=p.tolist(),orientation=list(quaternion))
+            for stage,p in (('grasp',end),('return',start))]
+
+
 def pixel_rays(pixels,k,distortion=()):
     """Optical rays for raw or rectified pixels, using their own calibration."""
     matrix=np.asarray(k,dtype=float).reshape(3,3)
